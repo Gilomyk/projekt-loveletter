@@ -1,0 +1,8 @@
+# Zignoruj folder node_modules
+node_modules/
+
+# Dodatkowe pliki, które warto zignorować
+*.log
+.env
+.DS_Store
+Thumbs.db
