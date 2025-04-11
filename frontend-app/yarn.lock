@@ -311,6 +311,11 @@
   resolved "https://registry.yarnpkg.com/@vicons/fa/-/fa-0.13.0.tgz#d62096e52ac31bfee3daa3764821f3847261ea29"
   integrity sha512-BFcDewcT78fSn4Y/fOgqlswbLUEW3+qJK2iJiNtgmkMzadBVpDXhNyVKsYM3V2uKPvDUrZT0JCWDWVRCiBXJZA==
 
+"@vicons/fluent@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@vicons/fluent/-/fluent-0.13.0.tgz#f594d4de73104ff27dccfd61cff7df465eb97621"
+  integrity sha512-bYGZsOE3qzvm3Cm43e7tybgGlr5ZUpYqtRZq0g0Tfupe8jIzLolpvQLNUt1zS8Mgt6goTbUk5YH7Fkv16jkykg==
+
 "@vitejs/plugin-vue@^5.2.1":
   version "5.2.3"
   resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.3.tgz#71a8fc82d4d2e425af304c35bf389506f674d89b"

@@ -3,7 +3,7 @@
       <!-- Right Buttons (Previously Left) -->
       <div class="buttons">
         <div class="button">
-            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
+            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToHome">
                 <n-icon size="32">
                     <Home />
                 </n-icon>
@@ -21,7 +21,7 @@
         </div>
   
         <div class="button">
-            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
+            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToChat">
                 <n-icon size="32">
                     <Inbox />
                 </n-icon>
@@ -55,6 +55,17 @@
   <script setup lang="ts">
   import { NButton, NIcon } from 'naive-ui';
   import { Home, Cog, Inbox, Users, ArrowDown } from '@vicons/fa';
+  import { useRouter } from 'vue-router';
+
+  const router = useRouter();
+
+  const goToHome = () => {
+    router.push('/');
+  };
+
+  const goToChat = () => {
+    router.push('/chat');
+  };
   </script>
   
   <style scoped>
