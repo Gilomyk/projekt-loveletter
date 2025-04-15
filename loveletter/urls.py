@@ -16,7 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from love_letter import views
+from love_letter.views import get_user_recommendations, get_user_matches
 
 urlpatterns = [
+    path('', get_user_recommendations),
     path('admin/', admin.site.urls),
+    path('chat/', get_user_matches),
 ]

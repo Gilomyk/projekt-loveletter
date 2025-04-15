@@ -1,12 +1,9 @@
-from django.db import models
-
 # Create your models here.
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class CustomUser(AbstractUser):
-    date_of_birth = models.DateField(null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
     gender = models.CharField(
         max_length=10,
         choices=[('M', 'Mężczyzna'), ('K', 'Kobieta')],
