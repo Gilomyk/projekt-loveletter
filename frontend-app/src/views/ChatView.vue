@@ -107,7 +107,6 @@ export default defineComponent({
 });
 </script>
 
-
 <style scoped>
 .chat-view {
   background-color: #FFCBCB;
