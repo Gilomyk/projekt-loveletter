@@ -7,36 +7,42 @@
     <div class="chat-container">
       <!-- Lewa kolumna z listą czatów -->
       <div class="chat-list">
-        <div class="chat-item" v-for="(user, index) in allUsers" :key="index" :class="{ active: selectedUserIndex === index }" @click="selectedUserIndex = index">
+        <div
+          class="chat-item"
+          v-for="(user, index) in allUsers"
+          :key="user.id"
+          :class="{ active: selectedUserIndex === index }"
+          @click="selectedUserIndex = index"
+        >
           <div class="profile-gradient">
-            <img class="chat-image" :src="user.image" alt="Profile" />
+            <img class="chat-image" :src="user.profile_picture" alt="Profile" />
           </div>
           <div class="chat-details">
-            <span class="chat-name">{{ user.name }}</span>
+            <span class="chat-name">{{ user.first_name }}</span>
             <span class="chat-last-message">{{ user.lastMessage || '' }}</span>
           </div>
         </div>
       </div>
 
       <!-- Okno czatu -->
-      <div class="chat-window">
+      <div class="chat-window" v-if="allUsers.length > 0">
         <!-- Nagłówek -->
         <div class="chat-header">
           <div class="chat-info">
             <div class="profile-gradient">
-              <img class="profile-image" :src="allUsers[selectedUserIndex].image" alt="Profile">
+              <img class="profile-image" :src="allUsers[selectedUserIndex].profile_picture" alt="Profile" />
             </div>
-            <span class="current-chat-name">{{ allUsers[selectedUserIndex].name }}</span>
+            <span class="current-chat-name">{{ allUsers[selectedUserIndex].first_name }}</span>
           </div>
-            <n-icon size="24" color="#fff" class="call-icon">
-              <Phone />
-            </n-icon>
+          <n-icon size="24" color="#fff" class="call-icon">
+            <Phone />
+          </n-icon>
         </div>
 
         <!-- Główna część czatu -->
         <div class="chat-content">
           <div
-            v-for="(message, idx) in allUsers[selectedUserIndex].messages"
+            v-for="(message, idx) in allUsers[selectedUserIndex].messages || []"
             :key="idx"
             :class="['message-' + message.side]"
           >
@@ -58,51 +64,49 @@
 
 <script>
 import { defineComponent } from "vue";
+import axios from "axios";
 import { NIcon } from "naive-ui";
 import { Phone } from "@vicons/fa";
 import { Send16Regular }from "@vicons/fluent"
+
 
 export default defineComponent({
   name: "ChatView",
   components: {
     NIcon,
     Phone,
-    Send16Regular
+    Send16Regular,
   },
   data() {
     return {
       selectedUserIndex: 0,
-      allUsers: [
-        {
-          name: 'Alice',
-          age: 24,
-          image: 'https://randomuser.me/api/portraits/women/0.jpg',
-          messages: [
-            { text: 'Cześć, jak się masz?', side: 'left' },
-            { text: 'Hej! Wszystko dobrze, a Ty?', side: 'right' },
-            { text: 'Super, dzięki że pytasz!', side: 'left' },
-          ],
-          lastMessage: 'Super, dzięki że pytasz!'
-        },
-        {
-          name: 'Bob',
-          age: 27,
-          image: 'https://randomuser.me/api/portraits/men/0.jpg',
-          messages: [
-            { text: 'Siemka, dawno się nie widzieliśmy!', side: 'left' },
-            { text: 'Prawda, trzeba to nadrobić', side: 'right' },
-          ],
-          lastMessage: 'Prawda, trzeba to nadrobić'
-        },
-        { name: 'Charlie', age: 22, image: 'https://randomuser.me/api/portraits/men/1.jpg' },
-        { name: 'David', age: 29, image: 'https://randomuser.me/api/portraits/men/2.jpg' },
-        { name: 'Eva', age: 26, image: 'https://randomuser.me/api/portraits/women/1.jpg' },
-        { name: 'Frank', age: 31, image: 'https://randomuser.me/api/portraits/men/3.jpg' }
-      ]
+      allUsers: [],
     };
+  },
+  mounted() {
+    axios.get("http://localhost:8000/chat/")
+      .then((response) => {
+        // Konwersja danych
+        const users = response.data.map(match => {
+          const matchedUser = match.user1.id === 1 ? match.user2 : match.user1;
+          return {
+            ...matchedUser,
+            lastMessage: 'Hej! 👋', // tymczasowo
+            messages: [
+              { text: 'Cześć, jak się masz?', side: 'left' },
+              { text: 'W porządku, a Ty?', side: 'right' }
+            ]
+          };
+        });
+        this.allUsers = users;
+      })
+      .catch(error => {
+        console.error("Błąd podczas pobierania matchy:", error);
+      });
   }
 });
 </script>
+
 
 <style scoped>
 .chat-view {
