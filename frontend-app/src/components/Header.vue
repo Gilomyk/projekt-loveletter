@@ -12,7 +12,7 @@
         </div>
   
         <div class="button">
-            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
+            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToPreferences">
                 <n-icon size="32">
                     <Cog />
                 </n-icon>
@@ -30,7 +30,7 @@
         </div>
 
         <div class="button">
-            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
+            <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToLikeHistory">
                 <n-icon size="32">
                     <Users />
                 </n-icon>
@@ -65,6 +65,14 @@
 
   const goToChat = () => {
     router.push('/chat');
+  };
+
+  const goToPreferences = () => {
+    router.push('/preferences');
+  };
+
+  const goToLikeHistory = () => {
+    router.push('/likehistory');
   };
   </script>
   

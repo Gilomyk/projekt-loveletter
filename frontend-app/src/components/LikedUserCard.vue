@@ -86,7 +86,6 @@ const cardStyle = computed(() => {
   }
 })
 
-
 function swipeRight() {
   emit('swipe', { direction: 'right', user: props.user })
 }
@@ -165,8 +164,6 @@ function swipeRight() {
   font-weight: bold;
   word-wrap: break-word;
 }
-
-
 
 .card-footer-center-card {
   height:50%;

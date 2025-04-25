@@ -62,7 +62,6 @@ import { NIcon } from "naive-ui";
 import { Phone } from "@vicons/fa";
 import { Send16Regular }from "@vicons/fluent"
 
-
 export default defineComponent({
   name: "ChatView",
   components: {

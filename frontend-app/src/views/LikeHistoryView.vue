@@ -1,8 +1,11 @@
 <template>
-  <div class="home-view">
-    <div class="card-container">
-      <UserCard
-        v-for="(user, index) in visibleUsers"
+  <div class="likes-view">
+    <div class="likes-header">
+     <h1>Your Likes</h1>
+    </div>
+    <div class="likes-container">
+      <LikedUserCard
+        v-for="(user, index) in likedUsers"
         :key="user.id"
         :user="user"
         :position="getPosition(index)"
@@ -12,13 +15,13 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts">
 import { defineProps } from 'vue'
 
-import UserCard from '@/components/UserCard.vue'
+import LikedUserCard from '@/components/LikedUserCard.vue'
 import { ref, computed } from 'vue'
 
-const allUsers = ref([
+const likedUsers = ref([
   { name: 'Alice', age: 24, image: 'https://randomuser.me/api/portraits/women/44.jpg' },
   { name: 'Bob', age: 27, image: 'https://randomuser.me/api/portraits/men/18.jpg' },
   { name: 'Charlie', age: 22, image: 'https://randomuser.me/api/portraits/men/45.jpg' },
@@ -32,51 +35,34 @@ const allUsers = ref([
   { name: 'Liam', age: 23, image: 'https://randomuser.me/api/portraits/men/10.jpg' },
   { name: 'Mia', age: 27, image: 'https://randomuser.me/api/portraits/women/11.jpg' }
 ]);
-
-const startIndex = ref(0)
-const visibleUsers = computed(() => {
-  const result = []
-  for (let i = 0; i < 3; i++) {
-    const index = (startIndex.value + i) % allUsers.value.length
-    result.push(allUsers.value[index])
-  }
-  return result
-})
-
-function getPosition(index) {
-  if (index === 0) return 'left'
-  if (index === 1) return 'center'
-  return 'right'
-}
-
-// Oceń Maciek czy to jest prawo-lewo czy lewo-prawo, na razie klikasz jeden z dwóch guzików na karcie i sie przesuwa
-// W razie czego zmienię w drugą stronę i oczywiście jakoś zwizualizuję jak kliknięto "Send a letter"
-
-function handleSwipe({ direction, user }) {
-  console.log(`Swiped ${direction} on`, user)
-
-  // Po przesunięciu: zwiększamy indeks, czyli idziemy do kolejnych użytkowników
-  if (direction === 'right') {
-    startIndex.value = (startIndex.value + 1) % allUsers.value.length
-  }
-}
 </script>
 
 <style scoped>
-.home-view {
+.likes-view {
+  background-color: #F09D9D;
   display: flex;
-  align-items: center;
   flex-direction: column;
-  height: 90vh;
-  width: 100%;
-}
-
-.card-container {
-  position: relative;
-  display: flex;
-  justify-content: center;
   align-items: center;
+  margin: 20px;
   height: 100%;
+  border-radius: 10px;
 }
 
+.likes-header {
+  display: flex;
+  justify-content: space-between;
+  width: 95%;
+  align-items: center;
+}
+
+.likes-container {
+  background-color: #FFDFDF;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  height: 100%;
+  width: 95%;
+  border-radius: 10px;
+  overflow-x: scroll;
+}
 </style>
