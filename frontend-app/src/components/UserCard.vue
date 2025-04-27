@@ -1,8 +1,14 @@
 <template>
     <div
       :class="['card', cardClass]"
-      :style="cardStyle"
+      :style="cardStyle"  
     >
+      <div v-if="liked" class="indicator liked">
+        <NIcon :size="20"><Heart /></NIcon>
+      </div>
+      <div v-if="rejected" class="indicator rejected">
+        <NIcon :size="20"><Times /></NIcon>
+      </div>
       <img :src="user.image" alt="Profile" class="profile-image" />
   
       <!-- Center card layout -->
@@ -11,7 +17,7 @@
           <span class="name-age">{{ user.name }}, {{ user.age }}</span>
         </div>
         <div class="bottom-bar">
-          <div class="button" @click="swipeRight">
+          <div class="button" @click="rejectUser">
             <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
               <n-icon size="24"><LongArrowAltLeft /></n-icon>
             </n-button>
@@ -21,7 +27,7 @@
             <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
             <span>More info</span>
           </div>
-          <div class="button" @click="swipeRight">
+          <div class="button" @click="likeUser">
             <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
               <n-icon size="24"><Feather /></n-icon>
             </n-button>
@@ -43,25 +49,46 @@
   </div>
 </template>
 
-<script setup>
-import { defineProps, defineEmits, computed } from 'vue'
+<script setup lang="ts">
+import { defineProps, defineEmits, ref, computed } from 'vue'
 import { NButton, NIcon } from 'naive-ui'
-import { ArrowDown, LongArrowAltLeft, Feather } from '@vicons/fa';
+import { Heart, Times } from '@vicons/fa'
+import { ArrowDown, LongArrowAltLeft, Feather } from '@vicons/fa'
 
-const props = defineProps({
-  user: Object,
-  position: String, // 'left' | 'center' | 'right'
-})
-const emit = defineEmits(['swipe'])
+// Definicja typów:
+interface User {
+  id: number;
+  name: string;
+  age: number;
+  image: string;
+  status: 'liked' | 'rejected' | null;
+}
+
+type CardPosition = 'left' | 'center' | 'right' | 'hidden-right';
+
+const props = defineProps<{
+  user: User;
+  position: CardPosition;
+}>()
+
+const emit = defineEmits<{
+  (e: 'swipe', payload: { direction: 'left' | 'right'; user: User }): void;
+  (e: 'like', payload: { user: User }): void;
+  (e: 'reject', payload: { user: User }): void;
+}>()
 
 const cardClass = computed(() => {
   if (props.position === 'center') return 'center-card'
   if (props.position === 'left') return 'left-card'
-  return 'right-card'
+  if (props.position === 'right') return 'right-card'
+  return 'hidden-right-card'
 })
 
+const liked = ref(false)
+const rejected = ref(false)
+
 const cardStyle = computed(() => {
-  let base = {
+  const base = {
     transition: 'transform 0.5s ease, opacity 0.5s ease',
   }
 
@@ -69,6 +96,7 @@ const cardStyle = computed(() => {
     return {
       ...base,
       transform: 'scale(1.0) translateY(0)',
+      zIndex: 2,
     }
   }
 
@@ -76,19 +104,39 @@ const cardStyle = computed(() => {
     return {
       ...base,
       transform: 'scale(0.9) translateX(-35vw)',
+      zIndex: 1,
     }
   }
 
-  // right
+  if (props.position === 'right') {
+    return {
+      ...base,
+      transform: 'scale(0.9) translateX(35vw)',
+      zIndex: 1,
+    }
+  }
+
   return {
     ...base,
     transform: 'scale(0.9) translateX(35vw)',
+    zIndex: 0,
   }
 })
 
+function likeUser() {
+  if (props.user.status === null){
+    liked.value = true
+    emit('like', { user: props.user });
+    emit('swipe', { direction: 'right', user: props.user });
+  }
+}
 
-function swipeRight() {
-  emit('swipe', { direction: 'right', user: props.user })
+function rejectUser() {
+  if (props.user.status === null){
+    rejected.value = true
+    emit('reject', { user: props.user });
+    emit('swipe', { direction: 'left', user: props.user }); // poprawiłem swipe na left przy reject
+  }
 }
 </script>
 
@@ -106,6 +154,11 @@ function swipeRight() {
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.hidden-right-card{
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  box-shadow: none
 }
 
 /* Dodanie cienia */
@@ -127,7 +180,28 @@ function swipeRight() {
 
 .profile-image {
   width: 100%;
+  height: auto;
   object-fit: cover;
+}
+
+.indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  opacity: 0;
+}
+
+.liked {
+  color: green;
+}
+
+.rejected {
+  color: red;
+}
+
+.card .indicator {
+  transition: opacity 0.5s ease;
+  opacity: 1;
 }
 
 .card-footer {
@@ -165,8 +239,6 @@ function swipeRight() {
   font-weight: bold;
   word-wrap: break-word;
 }
-
-
 
 .card-footer-center-card {
   height:50%;
