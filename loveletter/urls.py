@@ -17,10 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from love_letter import views
-from love_letter.views import get_user_recommendations, get_user_matches
+from love_letter.views import get_users, get_user_recommendations, get_user_matches
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', get_user_recommendations),
+    path('users/', get_users),
     path('admin/', admin.site.urls),
     path('chat/', get_user_matches),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

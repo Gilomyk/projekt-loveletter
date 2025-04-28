@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             return obj.profile_picture.url
         return ''
 
+
 class MatchSerializer(serializers.ModelSerializer):
     user1 = UserSerializer()
     user2 = UserSerializer()

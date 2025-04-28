@@ -11,6 +11,13 @@ from .models import CustomUser, Preference, Match
 from .serializers import MatchSerializer, UserSerializer
 from django.db.models import Q
 
+# (test moment) Pobieramy użytkowników, całe info
+@api_view(['GET'])
+def get_users(request):
+    users = CustomUser.objects.all().order_by('id')
+    serializer = UserSerializer(users, many=True, context={'request': request})
+    return Response(serializer.data)
+
 @api_view(['GET'])
 def get_user_matches(request):
     current_user = CustomUser.objects.get(id=1)  # Na sztywno

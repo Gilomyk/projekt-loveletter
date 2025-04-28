@@ -14,7 +14,7 @@ class CustomUser(AbstractUser):
     interests = models.TextField(null=True, blank=True)
     lifestyle = models.CharField(max_length=50, null=True, blank=True)
     relationship_goal = models.CharField(max_length=50, null=True, blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='media/profile_pictures/', null=True, blank=True)
 
     def __str__(self):
         return self.username
