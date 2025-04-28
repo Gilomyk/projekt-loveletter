@@ -3,7 +3,7 @@
     <div class="card-container">
       <UserCard
         v-for="card in visibleCards"
-        :key="card.user.id"
+        :key="card.user?.id"
         :user="card.user"
         :position="card.position"
         @like="handleLike"
@@ -17,15 +17,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 import UserCard from '@/components/UserCard.vue'
 
 // Typ pojedynczego użytkownika
 interface User {
   id: number;
-  name: string
+  first_name: string
   age: number
-  image: string
+  profile_picture: string
   status: 'liked' | 'rejected' | null
 }
 
@@ -35,29 +36,33 @@ interface Card {
   position: 'left' | 'center' | 'right' | 'hidden-right'
 }
 
-// Statyczna lista użytkowników
-const allUsers = ref<User[]>([
-  { id: 1, name: 'Alice', age: 24, image: 'https://randomuser.me/api/portraits/women/44.jpg', status: null },
-  { id: 2, name: 'Bob', age: 27, image: 'https://randomuser.me/api/portraits/men/18.jpg', status: null },
-  { id: 3, name: 'Charlie', age: 22, image: 'https://randomuser.me/api/portraits/men/45.jpg', status: null },
-  { id: 4, name: 'David', age: 29, image: 'https://randomuser.me/api/portraits/men/53.jpg', status: null },
-  { id: 5, name: 'Eva', age: 26, image: 'https://randomuser.me/api/portraits/women/21.jpg', status: null },
-  { id: 6, name: 'Frank', age: 31, image: 'https://randomuser.me/api/portraits/men/6.jpg', status: null },
-  { id: 7, name: 'Grace', age: 28, image: 'https://randomuser.me/api/portraits/women/64.jpg', status: null },
-  { id: 8, name: 'Helen', age: 34, image: 'https://randomuser.me/api/portraits/women/16.jpg', status: null },
-  { id: 9, name: 'Ivy', age: 25, image: 'https://randomuser.me/api/portraits/women/29.jpg', status: null },
-  { id: 10, name: 'Jack', age: 32, image: 'https://randomuser.me/api/portraits/men/80.jpg', status: null },
-  { id: 11, name: 'Liam', age: 23, image: 'https://randomuser.me/api/portraits/men/10.jpg', status: null },
-  { id: 12, name: 'Mia', age: 27, image: 'https://randomuser.me/api/portraits/women/11.jpg', status: null }
-])
-
 const noMoreUsers = ref(false)
 const startIndex = ref(0)
+
+// Lista użytkowników pobieranych z bazy przez endpoint
+const allUsers = ref<User[]>([])
+onMounted(async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/users/') 
+    console.log('Otrzymany JSON:', response.data)
+    allUsers.value = response.data.filter((u: User) => u.id !== 1).map(u => ({ ...u, status: null }))  // Załaduj dane użytkowników
+  } catch (error) {
+    console.error('Error fetching users:', error)
+  }
+})
 
 // Widoczne karty
 const visibleCards = computed<Card[]>(() => {
   const cards: Card[] = []
   const len = allUsers.value.length
+
+  // jeśli nie ma jeszcze żadnych userów, nie próbuj nic renderować
+  if (len === 0) return cards
+
+  // zabezpiecz, żeby startIndex nigdy nie wyszedł poza zakres
+  if (startIndex.value >= len) {
+    startIndex.value = 0
+  }
 
   // Ukryta prawa karta
   if (startIndex.value > 1) {
