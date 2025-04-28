@@ -5,7 +5,7 @@ from .models import CustomUser, Like, Match
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('date_of_birth', 'gender', 'location', 'interests', 'lifestyle', 'relationship_goal', 'profile_picture')}),
+        (None, {'fields': ('age', 'gender', 'location', 'interests', 'lifestyle', 'relationship_goal', 'profile_picture')}),
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)
