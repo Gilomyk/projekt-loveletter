@@ -3,10 +3,11 @@ from .models import CustomUser, Match
 
 class UserSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
+    username = serializers.CharField(source='__str__', read_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'first_name', 'age', 'gender', 'location', 'profile_picture']
+        fields = ['id', 'username', 'first_name', 'age', 'gender', 'location', 'profile_picture']
 
     def get_profile_picture(self, obj):
         request = self.context.get('request')

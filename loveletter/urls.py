@@ -15,17 +15,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-from love_letter import views
-from love_letter.views import get_users, get_user_recommendations, get_user_matches
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from love_letter.views import api_root
 
 urlpatterns = [
-    path('', get_user_recommendations),
-    path('users/', get_users),
+    path('', api_root, name='api_root'),
     path('admin/', admin.site.urls),
-    path('chat/', get_user_matches),
+    path('api/', include('love_letter.urls')),  # <-- Wszystkie endpointy API dostępne pod /api/
 ]
 
 if settings.DEBUG:
