@@ -64,7 +64,7 @@
 
 <script>
 import { defineComponent } from "vue";
-import axios from "axios";
+import axios from "@/axios";
 import { NIcon } from "naive-ui";
 import { Phone } from "@vicons/fa";
 <<<<<<< HEAD
@@ -87,7 +87,7 @@ export default defineComponent({
     };
   },
   mounted() {
-    axios.get("http://localhost:8000/chat/")
+    axios.get("/chat/")
       .then((response) => {
         // Konwersja danych
         const users = response.data.map(match => {
