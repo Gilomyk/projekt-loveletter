@@ -84,6 +84,7 @@
   resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.17.16.tgz"
   integrity sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==
 
+<<<<<<< HEAD
 "@types/node@^18.0.0 || ^20.0.0 || >=22.0.0", "@types/node@^22.14.0":
 <<<<<<< HEAD
   version "22.14.0"
@@ -94,6 +95,12 @@
   resolved "https://registry.npmjs.org/@types/node/-/node-22.14.1.tgz"
   integrity sha512-u0HuPQwe/dHrItgHHpmw3N2fYCR6x4ivMNbPHRkBVP4CvN+kiRrKHWk3i8tXiO/joPwXLMYvF9TTF0eqgHIuOw==
 >>>>>>> 10657d3e0c9bbc7ca8aa6c0de14eb513ef980db1
+=======
+"@types/node@^22.14.0":
+  version "22.14.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.14.0.tgz#d3bfa3936fef0dbacd79ea3eb17d521c628bb47e"
+  integrity sha512-Kmpl+z84ILoG+3T/zQFyAJsU6EPTmOCj8/2+83fSN6djd6I4o7uOuGIH6vq3PrjY5BGitSbFuMN18j3iknubbA==
+>>>>>>> frontend
   dependencies:
     undici-types "~6.21.0"
 
@@ -456,6 +463,7 @@ evtd@^0.2.2, evtd@^0.2.4:
   integrity sha512-qaeGN5bx63s/AXgQo8gj6fBkxge+OoLddLniox5qtLAEY5HSnuSlISXVPxnSae1dWblvTh4/HoMIB+mbMsvZzw==
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 follow-redirects@^1.15.6:
   version "1.15.9"
@@ -526,6 +534,13 @@ hasown@^2.0.2:
     function-bind "^1.1.2"
 
 >>>>>>> 10657d3e0c9bbc7ca8aa6c0de14eb513ef980db1
+=======
+fsevents@~2.3.2, fsevents@~2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.3.tgz#cac6407785d03675a2a5e1a5305c697b347d90d6"
+  integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
+
+>>>>>>> frontend
 he@^1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/he/-/he-1.2.0.tgz"

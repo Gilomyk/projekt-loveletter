@@ -64,14 +64,10 @@
 
 <script>
 import { defineComponent } from "vue";
-import axios from "axios";
+import axios from "@/axios";
 import { NIcon } from "naive-ui";
 import { Phone } from "@vicons/fa";
-<<<<<<< HEAD
 import { Send16Regular }from "@vicons/fluent"
-=======
-import { Send16Regular } from "@vicons/fluent";
->>>>>>> 10657d3e0c9bbc7ca8aa6c0de14eb513ef980db1
 
 export default defineComponent({
   name: "ChatView",
@@ -87,7 +83,7 @@ export default defineComponent({
     };
   },
   mounted() {
-    axios.get("http://localhost:8000/chat/")
+    axios.get("/chat/")
       .then((response) => {
         // Konwersja danych
         const users = response.data.map(match => {
