@@ -23,7 +23,7 @@ services:
     depends_on:
       - db
     environment:
-      - DJANGO_SETTINGS_MODULE=your_project.settings
+      - DJANGO_SETTINGS_MODULE=./loveletter/settings.py
       - PYTHONUNBUFFERED=1
 
   frontend:
