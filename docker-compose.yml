@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: loveletter_db
+      POSTGRES_USER: loveletter_user
+      POSTGRES_PASSWORD: bezpieczne_haslo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=your_project.settings  # change to your actual settings module
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    build:
+      context: ./frontend-app
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    command: http-server dist
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
