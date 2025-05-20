@@ -23,7 +23,7 @@ services:
     depends_on:
       - db
     environment:
-      - DJANGO_SETTINGS_MODULE=your_project.settings  # change to your actual settings module
+      - DJANGO_SETTINGS_MODULE=your_project.settings
       - PYTHONUNBUFFERED=1
 
   frontend:
