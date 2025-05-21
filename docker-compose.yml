@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   db:
-    image: postgres:13
+    image: postgres:17
     restart: always
     environment:
       POSTGRES_DB: loveletter_db
@@ -15,7 +13,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
@@ -23,7 +21,7 @@ services:
     depends_on:
       - db
     environment:
-      - DJANGO_SETTINGS_MODULE=./loveletter/settings.py
+      - DJANGO_SETTINGS_MODULE=loveletter.settings
       - PYTHONUNBUFFERED=1
 
   frontend:
