@@ -75,54 +75,6 @@ def get_likes(request):
     current_user_id = request.session.get('user_id')
     if not current_user_id:
         return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
-<<<<<<< HEAD
-=======
-
-    likes = Like.objects.filter(liker_id=current_user_id).select_related('liked')
-    liked_users = [{
-        'id': like.liked.id,
-        'username': like.liked.username,
-        'first_name': like.liked.first_name,
-        'age': like.liked.age,
-        'profile_picture': like.liked.profile_picture.url if like.liked.profile_picture else None,
-    } for like in likes]
-
-    return Response(liked_users)
-
-from django.db import IntegrityError
-
-# Polub użytkownika
-@api_view(['POST'])
-def like_user(request, liked_id):
-    current_user_id = request.session.get('user_id')
-    if not current_user_id:
-        return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-    if current_user_id == liked_id:
-        return Response({'error': 'Nie możesz polubić samego siebie.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    liker = get_object_or_404(CustomUser, id=current_user_id)
-    liked = get_object_or_404(CustomUser, id=liked_id)
-
-    # Spróbuj stworzyć Like
-    like, created = Like.objects.get_or_create(liker=liker, liked=liked)
-
-    if not created:
-        return Response({'message': 'Już polubiłeś tego użytkownika.'}, status=status.HTTP_200_OK)
-
-    # Sprawdź, czy liked wcześniej polubił likera
-    if Like.objects.filter(liker=liked, liked=liker).exists():
-        # Tworzymy Match – uporządkujmy użytkowników po ID żeby uniknąć duplikatów
-        user1, user2 = sorted([liker, liked], key=lambda u: u.id)
-        try:
-            Match.objects.create(user1=user1, user2=user2)
-            return Response({'message': f'Match! {user1.username} i {user2.username} się polubili 🎉'}, status=status.HTTP_201_CREATED)
-        except IntegrityError:
-            # Match już istnieje (może z innego requesta?)
-            return Response({'message': f'Match już istnieje między {user1.username} i {user2.username}.'}, status=status.HTTP_200_OK)
-
-    return Response({'message': f'Użytkownik {liker.username} polubił {liked.username}.'}, status=status.HTTP_201_CREATED)
->>>>>>> 294b1a085c5a0f9a58decab647f9ea1849d82f87
 
     likes = Like.objects.filter(liker_id=current_user_id).select_related('liked')
 

@@ -38,11 +38,7 @@ interface Card {
 
 const noMoreUsers = ref(false)
 const startIndex = ref(0)
-<<<<<<< HEAD
-
-=======
 const currentUser = ref<User | null>(null)
->>>>>>> 294b1a085c5a0f9a58decab647f9ea1849d82f87
 // Lista użytkowników pobieranych z bazy
 const allUsers = ref<User[]>([])
 
