@@ -99,12 +99,6 @@ const fetchUsers = async () => {
   }
 };
 
-onMounted(() => {
-  fetchUsers();
-});
-
-
-
 // Przełączanie użytkownika
 const switchUser = async (userId: number) => {
   console.log("Wybrano użytkownika z ID:", userId);
@@ -122,7 +116,21 @@ const switchUser = async (userId: number) => {
   }
 };
 
+onMounted(async () => {
+  try {
+    await fetchUsers();
 
+    const currentUserResponse = await axios.get('/get_current_user/');
+    if (!currentUserResponse.data || !currentUserResponse.data.username) {
+      // Jeśli brak usera w sesji – ustaw domyślny (np. 1)
+      await switchUser(1);
+    } else {
+      currentUser.value = currentUserResponse.data;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
 
 </script>
 

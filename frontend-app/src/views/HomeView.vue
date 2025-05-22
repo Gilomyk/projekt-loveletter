@@ -111,8 +111,16 @@ const visibleCards = computed<Card[]>(() => {
 })
 
 // Obsługa polubienia
-function handleLike(payload: { user: User }): void {
+async function handleLike(payload: { user: User }) {
   payload.user.status = 'liked'
+  
+  try {
+    const response = await axios.post(`/like/${payload.user.id}/`)
+    console.log('Polubienie zapisane:', response.data)
+  } catch (error) {
+    console.error('Błąd podczas lajkowania:', error)
+  }
+
   nextUser()
 }
 

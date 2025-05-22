@@ -83,24 +83,30 @@ export default defineComponent({
     };
   },
   mounted() {
-    axios.get("/chat/")
-      .then((response) => {
-        // Konwersja danych
-        const users = response.data.map(match => {
-          const matchedUser = match.user1.id === 1 ? match.user2 : match.user1;
-          return {
-            ...matchedUser,
-            lastMessage: 'Hej! 👋', // tymczasowo
-            messages: [
-              { text: 'Cześć, jak się masz?', side: 'left' },
-              { text: 'W porządku, a Ty?', side: 'right' }
-            ]
-          };
-        });
-        this.allUsers = users;
+    axios.get("/get_current_user/")
+      .then((userResponse) => {
+        const currentUserId = userResponse.data.id;
+
+        // Następnie pobieramy matche
+        return axios.get("/chat/")
+          .then((matchResponse) => {
+            const users = matchResponse.data.map(match => {
+              const matchedUser = match.user1.id === currentUserId ? match.user2 : match.user1;
+              return {
+                ...matchedUser,
+                lastMessage: 'Hej! 👋', // tymczasowo
+                messages: [
+                  { text: 'Cześć, jak się masz?', side: 'left' },
+                  { text: 'W porządku, a Ty?', side: 'right' }
+                ]
+              };
+            });
+
+            this.allUsers = users;
+          });
       })
       .catch(error => {
-        console.error("Błąd podczas pobierania matchy:", error);
+        console.error("Błąd podczas ładowania danych użytkownika lub matchy:", error);
       });
   }
 });
