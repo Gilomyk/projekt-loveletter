@@ -8,12 +8,8 @@ def api_test(request):
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import CustomUser, Preference, Match, Like
-<<<<<<< HEAD
 from .serializers import MatchSerializer, UserSerializer, LikeSerializer
-=======
-from .serializers import MatchSerializer, UserSerializer
 from django.db import IntegrityError
->>>>>>> 294b1a085c5a0f9a58decab647f9ea1849d82f87
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -105,6 +101,17 @@ def like_user(request, liked_id):
 
     if not created:
         return Response({'message': 'Już polubiłeś tego użytkownika.'}, status=status.HTTP_200_OK)
+    
+    # Sprawdź, czy liked wcześniej polubił likera
+    if Like.objects.filter(liker=liked, liked=liker).exists():
+        # Tworzymy Match – uporządkujmy użytkowników po ID żeby uniknąć duplikatów
+        user1, user2 = sorted([liker, liked], key=lambda u: u.id)
+        try:
+            Match.objects.create(user1=user1, user2=user2)
+            return Response({'message': f'Match! {user1.username} i {user2.username} się polubili 🎉'}, status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            # Match już istnieje (może z innego requesta?)
+            return Response({'message': f'Match już istnieje między {user1.username} i {user2.username}.'}, status=status.HTTP_200_OK)
 
     return Response({'message': f'Użytkownik {liker.username} polubił {liked.username}.'}, status=status.HTTP_201_CREATED)
 
