@@ -1,8 +1,29 @@
-# Zignoruj folder node_modules
-node_modules/
-
-# Dodatkowe pliki, które warto zignorować
-*.log
-.env
 .DS_Store
 Thumbs.db
+*.log
+.env
+.env.local
+.env.*.local
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+node_modules/
+dist/
+build/
+out/
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+db.sqlite3
+media/
+staticfiles/
