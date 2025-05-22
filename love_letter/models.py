@@ -45,7 +45,10 @@ class Preference(models.Model):
     )
     age_min = models.PositiveIntegerField(null=True, blank=True)
     age_max = models.PositiveIntegerField(null=True, blank=True)
-    preferred_traits = models.ManyToManyField(Trait, blank=True)
+    preferred_hobbies = models.ManyToManyField(Trait, blank=True)
+    preferred_distance = models.PositiveIntegerField(null=True, blank=True)
+    preferred_lifestyle = models.CharField(max_length=50, null=True, blank=True)
+    preferred_goal = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return f"Preferencje {self.user.username}"
