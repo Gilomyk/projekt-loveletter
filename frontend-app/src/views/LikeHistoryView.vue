@@ -67,9 +67,11 @@ const likedUsers = ref<LikedUser[]>([
   width: 95%;
   border-radius: 10px;
   overflow-x: scroll;
+  margin: 1vh;
 }
 
 .card {
   flex-shrink: 0; /* żeby karty się nie ściskały */
+  margin: 1vh;
 }
 </style>

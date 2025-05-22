@@ -41,7 +41,7 @@ defineProps<{
   height: fit-content;
   border: 3px solid transparent;
   border-image: linear-gradient(135deg, #cd7373, #000000) 1;
-  border-radius: 15px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
