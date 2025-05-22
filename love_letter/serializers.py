@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Match
+from .models import CustomUser, Match, Like
 
 class UserSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
@@ -17,7 +17,6 @@ class UserSerializer(serializers.ModelSerializer):
             return obj.profile_picture.url
         return ''
 
-
 class MatchSerializer(serializers.ModelSerializer):
     user1 = UserSerializer()
     user2 = UserSerializer()
@@ -25,3 +24,11 @@ class MatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Match
         fields = ['id', 'user1', 'user2', 'matched_at']
+
+class LikeSerializer(serializers.ModelSerializer):
+    liker = UserSerializer()
+    liked = UserSerializer()
+
+    class Meta:
+        model = Like
+        fields = ['id', 'liker', 'liked', 'created_at']

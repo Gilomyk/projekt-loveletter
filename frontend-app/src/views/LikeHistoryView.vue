@@ -5,7 +5,7 @@
     </div>
     <div class="likes-container">
       <LikedUserCard
-        v-for="(user) in likedUsers"
+        v-for="(user) in displayedLikes"
         :key="user.id"
         :user="user"
       />
@@ -14,7 +14,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import axios from '@/axios'
 import LikedUserCard from '@/components/LikedUserCard.vue'
 
 interface LikedUser {
@@ -24,20 +25,38 @@ interface LikedUser {
   profile_picture: string
 }
 
-const likedUsers = ref<LikedUser[]>([
-  { id: 1, first_name: 'Alice', age: 24, profile_picture: 'https://randomuser.me/api/portraits/women/44.jpg'},
-  { id: 2, first_name: 'Bob', age: 27, profile_picture: 'https://randomuser.me/api/portraits/men/18.jpg'},
-  { id: 3, first_name: 'Charlie', age: 22, profile_picture: 'https://randomuser.me/api/portraits/men/45.jpg'},
-  { id: 4, first_name: 'David', age: 29, profile_picture: 'https://randomuser.me/api/portraits/men/53.jpg'},
-  { id: 5, first_name: 'Eva', age: 26, profile_picture: 'https://randomuser.me/api/portraits/women/21.jpg'},
-  { id: 6, first_name: 'Frank', age: 31, profile_picture: 'https://randomuser.me/api/portraits/men/6.jpg'},
-  { id: 7, first_name: 'Grace', age: 28, profile_picture: 'https://randomuser.me/api/portraits/women/64.jpg'},
-  { id: 8, first_name: 'Helen', age: 34, profile_picture: 'https://randomuser.me/api/portraits/women/16.jpg'},
-  { id: 9, first_name: 'Ivy', age: 25, profile_picture: 'https://randomuser.me/api/portraits/women/29.jpg'},
-  { id: 10, first_name: 'Jack', age: 32, profile_picture: 'https://randomuser.me/api/portraits/men/80.jpg'},
-  { id: 11, first_name: 'Liam', age: 23, profile_picture: 'https://randomuser.me/api/portraits/men/10.jpg'},
-  { id: 12, first_name: 'Mia', age: 27, profile_picture: 'https://randomuser.me/api/portraits/women/11.jpg'}
-])
+const noLikes = ref(false)
+
+// lista polubień z bazy
+const allLikes = ref<LikedUser[]>([])
+onMounted(async () => {
+  try {
+    const response = await axios.get('/likes/') 
+    console.log('LikedHistory - Otrzymany JSON:', response.data)
+    // Endpoint, który zwraca like
+    allLikes.value = response.data.filter((u: LikedUser) => u.id !== 1).map((u: LikedUser) => ({ ...u, status: null }))  // Załaduj dane użytkowników
+  } catch (error) {
+    console.error('Error fetching users:', error)
+  }
+})
+
+const displayedLikes = computed<LikedUser[]>(() => {
+  const likes: LikedUser[] = []
+  const len = allLikes.value.length
+
+  // jeśli nie ma jeszcze żadnych userów, nie próbuj nic renderować
+  if (len === 0) {
+    return likes
+  }
+
+  allLikes.value.forEach(like => {
+    likes.push(like)
+  });
+
+  likes.reverse()
+
+  return likes
+})
 </script>
 
 <style scoped>
@@ -72,6 +91,8 @@ const likedUsers = ref<LikedUser[]>([
 
 .card {
   flex-shrink: 0; /* żeby karty się nie ściskały */
-  margin: 1vh;
+  margin-left: 2vh;
+  margin-top: 2vh;
+  align-self: flex-end;
 }
 </style>

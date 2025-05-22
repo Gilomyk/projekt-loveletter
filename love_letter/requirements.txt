@@ -7,3 +7,4 @@ Pillow
 django-cors-headers
 djangorestframework
 faker
+requests

@@ -39,22 +39,6 @@ interface Card {
 const noMoreUsers = ref(false)
 const startIndex = ref(0)
 
-// Statyczna lista użytkowników
-// const allUsers = ref<User[]>([
-//   { id: 1, first_name: 'Alice', age: 24, profile_picture: 'https://randomuser.me/api/portraits/women/44.jpg', status: null },
-//   { id: 2, first_name: 'Bob', age: 27, profile_picture: 'https://randomuser.me/api/portraits/men/18.jpg', status: null },
-//   { id: 3, first_name: 'Charlie', age: 22, profile_picture: 'https://randomuser.me/api/portraits/men/45.jpg', status: null },
-//   { id: 4, first_name: 'David', age: 29, profile_picture: 'https://randomuser.me/api/portraits/men/53.jpg', status: null },
-//   { id: 5, first_name: 'Eva', age: 26, profile_picture: 'https://randomuser.me/api/portraits/women/21.jpg', status: null },
-//   { id: 6, first_name: 'Frank', age: 31, profile_picture: 'https://randomuser.me/api/portraits/men/6.jpg', status: null },
-//   { id: 7, first_name: 'Grace', age: 28, profile_picture: 'https://randomuser.me/api/portraits/women/64.jpg', status: null },
-//   { id: 8, first_name: 'Helen', age: 34, profile_picture: 'https://randomuser.me/api/portraits/women/16.jpg', status: null },
-//   { id: 9, first_name: 'Ivy', age: 25, profile_picture: 'https://randomuser.me/api/portraits/women/29.jpg', status: null },
-//   { id: 10, first_name: 'Jack', age: 32, profile_picture: 'https://randomuser.me/api/portraits/men/80.jpg', status: null },
-//   { id: 11, first_name: 'Liam', age: 23, profile_picture: 'https://randomuser.me/api/portraits/men/10.jpg', status: null },
-//   { id: 12, first_name: 'Mia', age: 27, profile_picture: 'https://randomuser.me/api/portraits/women/11.jpg', status: null }
-// ])
-
 // Lista użytkowników pobieranych z bazy
 const allUsers = ref<User[]>([])
 onMounted(async () => {
@@ -111,8 +95,16 @@ const visibleCards = computed<Card[]>(() => {
 })
 
 // Obsługa polubienia
-function handleLike(payload: { user: User }): void {
+async function handleLike(payload: { user: User }) {
   payload.user.status = 'liked'
+  
+  try {
+    const response = await axios.post(`/like/${payload.user.id}/`)
+    console.log('Polubienie zapisane:', response.data)
+  } catch (error) {
+    console.error('Błąd podczas lajkowania:', error)
+  }
+
   nextUser()
 }
 

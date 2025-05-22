@@ -7,10 +7,12 @@ def api_test(request):
 '''
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import CustomUser, Preference, Match
-from .serializers import MatchSerializer, UserSerializer
+from .models import CustomUser, Preference, Match, Like
+from .serializers import MatchSerializer, UserSerializer, LikeSerializer
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -26,6 +28,7 @@ def api_root(request, format=None):
         'users': reverse('user_list', request=request, format=format),
         'recommendations': reverse('user_recommendations', request=request, format=format),
         'matches': reverse('user_matches', request=request, format=format),
+        'likes': reverse('user_likes', request=request, format=format),
         'switch_user(id=1)': reverse('switch_user', kwargs={'user_id': default_user_id}, request=request, format=format),
         'current_user': reverse('get_current_user', request=request, format=format),
         'admin': '/admin/',
@@ -61,14 +64,60 @@ def get_current_user(request):
     except CustomUser.DoesNotExist:
         return Response({"detail": "Użytkownik nie istnieje"}, status=404)
 
+# Zwróć użytkowników, których obecny user polubił
+@api_view(['GET'])
+def get_likes(request):
+    current_user_id = request.session.get('user_id')
+    if not current_user_id:
+        return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
 
+    likes = Like.objects.filter(liker_id=current_user_id).select_related('liked')
+
+    liked_users = [{
+        'id': like.liked.id,
+        'username': like.liked.username,
+        'first_name': like.liked.first_name,
+        'age': like.liked.age,
+        'profile_picture': 'http://localhost:8000' + like.liked.profile_picture.url if like.liked.profile_picture else None,
+    } for like in likes]
+
+    return Response(liked_users)
+
+# Polub użytkownika
+@api_view(['POST'])
+def like_user(request, liked_id):
+    current_user_id = request.session.get('user_id')
+    if not current_user_id:
+        return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    if current_user_id == liked_id:
+        return Response({'error': 'Nie możesz polubić samego siebie.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    liker = get_object_or_404(CustomUser, id=current_user_id)
+    liked = get_object_or_404(CustomUser, id=liked_id)
+
+    like, created = Like.objects.get_or_create(liker=liker, liked=liked)
+
+    if not created:
+        return Response({'message': 'Już polubiłeś tego użytkownika.'}, status=status.HTTP_200_OK)
+
+    return Response({'message': f'Użytkownik {liker.username} polubił {liked.username}.'}, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 def get_user_matches(request):
-    current_user = CustomUser.objects.get(id=1)  # Na sztywno
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return Response({'error': 'Brak wybranego użytkownika'}, status=400)
+    
+    try:
+        current_user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Użytkownik nie istnieje'}, status=404)
+
     matches = Match.objects.filter(Q(user1=current_user) | Q(user2=current_user))
     serializer = MatchSerializer(matches, many=True, context={'request': request})
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 def get_user_recommendations(request):
