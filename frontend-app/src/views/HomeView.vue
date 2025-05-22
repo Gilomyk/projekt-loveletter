@@ -38,18 +38,38 @@ interface Card {
 
 const noMoreUsers = ref(false)
 const startIndex = ref(0)
+<<<<<<< HEAD
 
+=======
+const currentUser = ref<User | null>(null)
+>>>>>>> 294b1a085c5a0f9a58decab647f9ea1849d82f87
 // Lista użytkowników pobieranych z bazy
 const allUsers = ref<User[]>([])
-onMounted(async () => {
+
+// Pobierz aktualnego użytkownika
+async function fetchCurrentUser() {
   try {
-    const response = await axios.get('/users/') 
-    console.log('Otrzymany JSON:', response.data)
-     // Endpoint, który zwraca użytkowników
-    allUsers.value = response.data.filter((u: User) => u.id !== 1).map((u: User) => ({ ...u, status: null }))  // Załaduj dane użytkowników
+    const response = await axios.get('/get_current_user/')
+    currentUser.value = response.data
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('Nie udało się pobrać aktualnego użytkownika:', error)
   }
+}
+
+// Pobierz listę wszystkich użytkowników
+async function fetchAllUsers() {
+  try {
+    const response = await axios.get('/users/')
+    const otherUsers = response.data.filter((u: User) => u.id !== currentUser.value?.id)
+    allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
+  } catch (error) {
+    console.error('Błąd podczas pobierania użytkowników:', error)
+  }
+}
+
+onMounted(async () => {
+  await fetchCurrentUser()
+  await fetchAllUsers()
 })
 
 // Widoczne karty
@@ -58,7 +78,7 @@ const visibleCards = computed<Card[]>(() => {
   const len = allUsers.value.length
 
   // jeśli nie ma jeszcze żadnych userów, nie próbuj nic renderować
-  if (len === 0) return cards
+  if (len === 0 || !currentUser.value) return cards
 
   // zabezpiecz, żeby startIndex nigdy nie wyszedł poza zakres
   if (startIndex.value >= len) {
