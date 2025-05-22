@@ -9,14 +9,33 @@
         :key="user.id"
         :user="user"
       />
+      <div v-if="noLikes" class="no-likes-container">
+        <div class="no-likes">
+          <h1>No like history!</h1>
+          <p>It seems you haven’t got anyone in your liked history! Go ahead to the homepage and change that!</p>
+          <n-button class="home-button" :style="{ backgroundColor: '#E8ADB5' }" @click="goToHome">
+              <n-icon size="32">
+                  <span>Go to Homepage</span>
+                  <Home />
+              </n-icon>
+          </n-button>
+        </div>
+    </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { NButton, NIcon, NDropdown } from 'naive-ui';
 import { ref, computed, onMounted } from 'vue';
 import axios from '@/axios'
 import LikedUserCard from '@/components/LikedUserCard.vue'
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const goToHome = () => {
+  router.push('/');
+};
 
 interface LikedUser {
   id: number;
@@ -46,7 +65,10 @@ const displayedLikes = computed<LikedUser[]>(() => {
 
   // jeśli nie ma jeszcze żadnych userów, nie próbuj nic renderować
   if (len === 0) {
+    noLikes.value = true
     return likes
+  } else {
+    noLikes.value = false
   }
 
   allLikes.value.forEach(like => {
@@ -94,5 +116,28 @@ const displayedLikes = computed<LikedUser[]>(() => {
   margin-left: 2vh;
   margin-top: 2vh;
   align-self: flex-end;
+}
+
+.no-likes-container {
+  background-color: #FFDFDF;
+  width: 95%;
+  border-radius: 10px;
+  display:block;
+  height:auto;
+}
+
+.no-likes {
+  align-items: center;
+}
+
+.home-button {
+  padding: 5cap;
+  border-radius: 10px;
+  align-items:justify;
+}
+
+.home-button span {
+  font-size: 30px;
+  margin: 50%;
 }
 </style>

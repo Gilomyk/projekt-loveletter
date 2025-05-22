@@ -8,12 +8,7 @@ def api_test(request):
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import CustomUser, Preference, Match, Like
-<<<<<<< HEAD
 from .serializers import MatchSerializer, UserSerializer, LikeSerializer
-=======
-from .serializers import MatchSerializer, UserSerializer
-from django.db import IntegrityError
->>>>>>> 294b1a085c5a0f9a58decab647f9ea1849d82f87
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
