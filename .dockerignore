@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.vscode
+*.log
+.env
+.DS_Store
+Thumbs.db
+.venv/
+__pycache__/
+*.pyc
