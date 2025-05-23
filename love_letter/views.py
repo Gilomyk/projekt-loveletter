@@ -5,12 +5,13 @@ from django.http import JsonResponse
 def api_test(request):
     return JsonResponse({'message': 'u mnie działa xd'})
 '''
+from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import CustomUser, Preference, Match, Like
-from .serializers import MatchSerializer, UserSerializer
+from .models import CustomUser, Preference, Match, Like, Lifestyle, RelationshipGoal, Trait, UserTrait
+from .serializers import MatchSerializer, UserSerializer, LikeSerializer, PreferenceSerializer, LifestyleSerializer, RelationshipGoalSerializer, TraitSerializer
 from django.db import IntegrityError
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
@@ -21,12 +22,25 @@ from rest_framework import status
 
 User = get_user_model()
 
+class LifestyleList(generics.ListAPIView):
+    queryset = Lifestyle.objects.all()
+    serializer_class = LifestyleSerializer
+
+class RelationshipGoalList(generics.ListAPIView):
+    queryset = RelationshipGoal.objects.all()
+    serializer_class = RelationshipGoalSerializer
+
+class TraitList(generics.ListAPIView):
+    queryset = Trait.objects.all()
+    serializer_class = TraitSerializer
+
 # Przeglądarka dla REST API
 @api_view(['GET'])
 def api_root(request, format=None):
     default_user_id = 1  # Przykładowe domyślne user_id
     return Response({
         'users': reverse('user_list', request=request, format=format),
+        'preferences': reverse('get_user_preferences', request=request, format=format),
         'recommendations': reverse('user_recommendations', request=request, format=format),
         'matches': reverse('user_matches', request=request, format=format),
         'likes': reverse('user_likes', request=request, format=format),
@@ -38,7 +52,9 @@ def api_root(request, format=None):
 # (test moment) Pobieramy użytkowników, całe info
 @api_view(['GET'])
 def get_users(request):
-    users = CustomUser.objects.all().order_by('id')
+    users = CustomUser.objects.all().prefetch_related(
+        Prefetch('usertrait_set', queryset=UserTrait.objects.select_related('trait'))
+    ).order_by('id')
     serializer = UserSerializer(users, many=True, context={'request': request})
     return Response(serializer.data)
 
@@ -133,11 +149,89 @@ def get_user_matches(request):
     serializer = MatchSerializer(matches, many=True, context={'request': request})
     return Response(serializer.data)
 
+@api_view(['GET'])
+def get_user_preferences(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return Response({'error': 'Brak wybranego użytkownika w sesji'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Użytkownik nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        preference = Preference.objects.get(user=user)
+    except Preference.DoesNotExist:
+        return Response({'error': 'Brak ustawionych preferencji.'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = PreferenceSerializer(preference)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def set_user_preferences(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return Response({'error': 'Brak wybranego użytkownika w sesji'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Użytkownik nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data
+    try:
+        # Pobierz lub utwórz preferencje użytkownika
+        preference, created = Preference.objects.get_or_create(user=user)
+
+        # Aktualizuj pola
+        preference.preferred_gender = data.get('preferred_gender', preference.preferred_gender)
+        preference.age_min = data.get('age_min', preference.age_min)
+        preference.age_max = data.get('age_max', preference.age_max)
+        preference.preferred_distance = data.get('preferred_distance', preference.preferred_distance)
+
+        # Powiązania z innymi modelami
+        lifestyle_id = data.get('preferred_lifestyle')
+        if lifestyle_id:
+            try:
+                lifestyle = Lifestyle.objects.get(id=lifestyle_id)
+                preference.preferred_lifestyle = lifestyle
+            except Lifestyle.DoesNotExist:
+                return Response({'error': 'Nieprawidłowy lifestyle'}, status=status.HTTP_400_BAD_REQUEST)
+
+        goal_id = data.get('preferred_goal')
+        if goal_id:
+            try:
+                goal = RelationshipGoal.objects.get(id=goal_id)
+                preference.preferred_goal = goal
+            except RelationshipGoal.DoesNotExist:
+                return Response({'error': 'Nieprawidłowy cel'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Hobbies (traity) - many to many
+        hobby_ids = data.get('preferred_hobbies')
+        if hobby_ids is not None:
+            traits = Trait.objects.filter(id__in=hobby_ids)
+            preference.preferred_hobbies.set(traits)
+
+        preference.save()
+
+        return Response({'message': 'Preferencje zapisane pomyślnie.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def get_user_recommendations(request):
     print("rekomendacja dziala")
-    current_user = CustomUser.objects.get(id=1)
+    
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return Response({'error': 'Brak wybranego użytkownika'}, status=400)
+    
+    try:
+        current_user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Użytkownik nie istnieje'}, status=404)
 
     try:
         preference = Preference.objects.get(user=current_user)
@@ -146,13 +240,38 @@ def get_user_recommendations(request):
 
     preferred_gender = preference.preferred_gender
     age_min = preference.age_min or 0
-    age_max = preference.age_max or 150
+    age_max = preference.age_max or 89
 
-    recommended_users = CustomUser.objects.filter(
+    print("Płeć: ", preferred_gender)
+    print("Maks. wiek: ", age_max)
+    print("Min. wiek: ", age_min)
+
+    recommended_users = CustomUser.objects.all().prefetch_related(
+        Prefetch('usertrait_set', queryset=UserTrait.objects.select_related('trait'))
+    ).filter(
         gender=preferred_gender,
         age__gte=age_min,
-        age__lte=age_max
+        age__lte=age_max,
     ).exclude(id=current_user.id)
+    print("Po filtrze gender i age:", recommended_users.count())
 
-    serializer = UserSerializer(recommended_users, many=True)
+    # print(preference.preferred_lifestyle)
+    if preference.preferred_lifestyle:
+        recommended_users = recommended_users.filter(lifestyle=preference.preferred_lifestyle)
+        print("Po filtrze lifestyle:", recommended_users.count())
+
+    # print (preference.preferred_goal)
+    if preference.preferred_goal:
+        recommended_users = recommended_users.filter(relationship_goal=preference.preferred_goal)
+        print("Po filtrze goal:", recommended_users.count())
+
+    # print([hobby.name for hobby in preference.preferred_hobbies.all()])
+    if preference.preferred_hobbies.exists():
+        recommended_users = recommended_users.filter(
+            usertrait__trait__in=preference.preferred_hobbies.all()
+        ).distinct()
+        print("Po filtrze hobbies:", recommended_users.count())
+
+
+    serializer = UserSerializer(recommended_users, many=True, context={'request': request})
     return Response(serializer.data)
