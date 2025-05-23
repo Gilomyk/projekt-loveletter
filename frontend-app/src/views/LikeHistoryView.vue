@@ -3,24 +3,19 @@
     <div class="likes-header">
      <h1>Your Likes</h1>
     </div>
-    <div class="likes-container">
+    <div v-if="noLikes === true" class="no-likes-container">
+      <h1>No like history!</h1>
+      <p>It seems you haven’t got anyone in your liked history! Go ahead to the homepage and change that!</p>
+      <n-button class="home-button" :style="{ backgroundColor: '#E8ADB5' }" @click="goToHome">
+        <p>Go to Homepage</p>
+      </n-button>
+    </div>
+    <div v-else class="likes-container">
       <LikedUserCard
         v-for="(user) in displayedLikes"
         :key="user.id"
         :user="user"
       />
-      <div v-if="noLikes" class="no-likes-container">
-        <div class="no-likes">
-          <h1>No like history!</h1>
-          <p>It seems you haven’t got anyone in your liked history! Go ahead to the homepage and change that!</p>
-          <n-button class="home-button" :style="{ backgroundColor: '#E8ADB5' }" @click="goToHome">
-              <n-icon size="32">
-                  <span>Go to Homepage</span>
-                  <Home />
-              </n-icon>
-          </n-button>
-        </div>
-    </div>
     </div>
   </div>
 </template>
@@ -44,7 +39,13 @@ interface LikedUser {
   profile_picture: string
 }
 
-const noLikes = ref(false)
+const noLikes = computed<boolean>(() => {
+  if (allLikes.value.length === 0) {
+    return true
+  } else {
+    return false
+  }
+})
 
 // lista polubień z bazy
 const allLikes = ref<LikedUser[]>([])
@@ -61,15 +62,6 @@ onMounted(async () => {
 
 const displayedLikes = computed<LikedUser[]>(() => {
   const likes: LikedUser[] = []
-  const len = allLikes.value.length
-
-  // jeśli nie ma jeszcze żadnych userów, nie próbuj nic renderować
-  if (len === 0) {
-    noLikes.value = true
-    return likes
-  } else {
-    noLikes.value = false
-  }
 
   allLikes.value.forEach(like => {
     likes.push(like)
@@ -119,25 +111,23 @@ const displayedLikes = computed<LikedUser[]>(() => {
 }
 
 .no-likes-container {
+  padding-top: 10%;
+  padding-bottom: 10%;
   background-color: #FFDFDF;
+  height: 100%;
   width: 95%;
   border-radius: 10px;
-  display:block;
-  height:auto;
+  margin: 1vh;
+  text-align:center;
 }
 
-.no-likes {
-  align-items: center;
+.no-like-container h1 {
+  font-size: 40px;
 }
 
 .home-button {
-  padding: 5cap;
+  padding: 2cap;
   border-radius: 10px;
-  align-items:justify;
-}
-
-.home-button span {
   font-size: 30px;
-  margin: 50%;
 }
 </style>
