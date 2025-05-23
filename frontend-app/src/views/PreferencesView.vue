@@ -6,7 +6,7 @@
         <p>Choose the traits, hobbies and lifestyle of the people you're looking to connect with!</p>
       </div>
       <div class="preferences-save-button">
-        <n-button class="icon-btn" :style="{ backgroundColor: '#58CCD0' }">
+        <n-button class="icon-btn" :style="{ backgroundColor: '#58CCD0' }" @click="savePreferences">
           <span>Save Changes</span>
         </n-button>
       </div>
@@ -75,105 +75,118 @@
 
 <script lang="ts">
 import { NButton, NSlider, NSpace, NRadioGroup, NRadioButton, NSelect } from 'naive-ui'
-import { defineComponent, ref } from 'vue'
+import { defineComponent, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from '@/axios'
 
 export default defineComponent({
   components: {
     NButton, NSlider, NSpace, NRadioButton, NRadioGroup, NSelect
   },
   setup() {
+    const router = useRouter()
+    
+    // Zmienne reaktywne — puste lub null na start
+    const age_range = ref([25, 35])
+    const age_min = 18
+    const age_max = 89
+    const age_marks = { 18: '18', 89: '89' }
+
+    const gender = ref(null)
+    const genders = ref([
+      { value: 'K', label: 'Female' },
+      { value: 'M', label: 'Male' }
+    ])
+
+    const filtered_hobbies = ref([])
+    const hobbies = ref([])
+
+    const distance = ref(30)
+    const distance_marks = { 2: '2', 160: '160' }
+
+    const lifestyle = ref(null)
+    const lifestyles = ref([])
+
+    const dating_goal = ref(null)
+    const dating_goals = ref([])
+
+    async function savePreferences() {
+      try {
+        const payload = {
+          preferred_gender: gender.value,
+          age_min: age_range.value[0],
+          age_max: age_range.value[1],
+          preferred_distance: distance.value,
+          preferred_lifestyle: lifestyle.value,
+          preferred_goal: dating_goal.value,
+          preferred_hobbies: filtered_hobbies.value,
+        }
+        await axios.post('/preferences/set/', payload)
+        alert('Preferencje zapisane pomyślnie!')
+        // Opcjonalnie: przekieruj na inną stronę, np. home
+        router.push('/')
+      } catch (err) {
+        alert('Błąd podczas zapisywania preferencji')
+        console.error(err)
+      }
+    }
+
+    onMounted(async () => {
+      try {
+        const [lifestylesRes, goalsRes, traitsRes] = await Promise.all([
+          axios.get('/lifestyles/'),
+          axios.get('/relationship-goals/'),
+          axios.get('/traits/')
+        ])
+
+        lifestyles.value = lifestylesRes.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString()
+        }))
+
+        dating_goals.value = goalsRes.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString()
+        }))
+
+        hobbies.value = traitsRes.data.map((item: any) => ({
+          label: item.name,
+          value: item.id.toString()
+        }))
+
+        // lifestyle.value = lifestyles.value[0]?.value || null
+        // dating_goal.value = dating_goals.value[0]?.value || null
+        // filtered_hobbies.value = hobbies.value.length > 0 ? [hobbies.value[0].value] : []
+
+        const prefs = await axios.get('/preferences/')
+        age_range.value = [prefs.data.age_min, prefs.data.age_max]
+        gender.value = prefs.data.preferred_gender?.toUpperCase() || null
+        lifestyle.value = prefs.data.preferred_lifestyle?.id.toString() || null
+        dating_goal.value = prefs.data.preferred_goal?.id.toString() || null
+        filtered_hobbies.value = prefs.data.preferred_hobbies.map((h: any) => h.id.toString())
+        distance.value = prefs.data.preferred_distance || 30
+
+      } catch (e) {
+        console.error('Failed to load preferences data', e)
+      }
+    })
+    
     return {
-      age_range: ref([25, 35]),
-      age_min: 18,
-      age_max: 89,
-      age_marks: {
-        18: '18',
-        89: '89'
-      },
-      gender: ref(null),
-      genders: [
-        {
-          value: 'Male',
-          label: 'Male'
-        },
-        {
-          value: 'Female',
-          label: 'Female'
-        }
-      ].map((s) => {
-        s.value = s.value.toLowerCase()
-        return s
-      }),
-      filtered_hobbies: ref(['hobby0']),
-      hobbies: [
-        {
-          label: 'Climbing',
-          value: 'hobby0'
-        },
-        {
-          label: 'Fencing',
-          value: 'hobby1'
-        },
-        {
-          label: 'Computer Games',
-          value: 'hobby2'
-        },
-        {
-          label: 'Coding',
-          value: 'hobby3'
-        },
-        {
-          label: 'Hiking',
-          value: 'hobby4'
-        },
-      ],
-      distance: ref(30),
-      distance_marks: {
-        2: '2',
-        160: '160'
-      },
-      lifestyle: ref(null),
-      lifestyles: [
-        {
-          label: 'Party Animal',
-          value: 'lifestyle0'
-        },
-        {
-          label: 'Homebody',
-          value: 'lifestyle1'
-        },
-        {
-          label: 'Married to the Grind',
-          value: 'lifestyle2'
-        },
-        {
-          label: 'Academic Weapon',
-          value: 'lifestyle3'
-        },
-        {
-          label: 'Wilderness Explorer',
-          value: 'lifestyle4'
-        }
-      ],
-      dating_goal: ref(null),
-      dating_goals: [
-        {
-          label: 'Still thinking about it',
-          value: 'dating_goal0'
-        },
-        {
-          label: 'Long-term relationship',
-          value: 'dating_goal1'
-        },
-        {
-          label: 'Short-term fun',
-          value: 'dating_goal2'
-        },
-        {
-          label: 'Marriage',
-          value: 'dating_goal3'
-        }
-      ]
+      age_range,
+      age_min,
+      age_max,
+      age_marks,
+      gender,
+      genders,
+      filtered_hobbies,
+      hobbies,
+      distance,
+      distance_marks,
+      lifestyle,
+      lifestyles,
+      dating_goal,
+      dating_goals,
+      savePreferences
     }
   }
 })

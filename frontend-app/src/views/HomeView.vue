@@ -1,5 +1,8 @@
 <template>
   <div class="home-view">
+    <button class="toggle-button" @click="useRecommendations = !useRecommendations">
+      {{ useRecommendations ? 'Show All Users' : 'Filter By Recommendations' }}
+    </button>
     <div class="card-container">
       <UserCard
         v-for="card in visibleCards"
@@ -17,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import axios from '@/axios'
 import UserCard from '@/components/UserCard.vue'
 
@@ -41,6 +44,7 @@ const startIndex = ref(0)
 const currentUser = ref<User | null>(null)
 // Lista użytkowników pobieranych z bazy
 const allUsers = ref<User[]>([])
+const useRecommendations = ref(false)
 
 // Pobierz aktualnego użytkownika
 async function fetchCurrentUser() {
@@ -63,9 +67,33 @@ async function fetchAllUsers() {
   }
 }
 
+// Pobierz listę rekomendowanych użytkowników
+async function fetchRecommendedUsers() {
+  try {
+    const response = await axios.get('/recommendations/')
+    const otherUsers = response.data.filter((u: User) => u.id !== currentUser.value?.id)
+    allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
+  } catch (error) {
+    console.error('Błąd podczas pobierania rekomendowanych użytkowników:', error)
+  }
+}
+
+// Reaktywne przeładowanie użytkowników po zmianie flagi
+watch(useRecommendations, async (newVal) => {
+  if (newVal) {
+    await fetchRecommendedUsers()
+  } else {
+    await fetchAllUsers()
+  }
+})
+
 onMounted(async () => {
   await fetchCurrentUser()
-  await fetchAllUsers()
+  if (useRecommendations.value) {
+    await fetchRecommendedUsers()
+  } else {
+    await fetchAllUsers()
+  }
 })
 
 // Widoczne karty
@@ -156,6 +184,30 @@ function nextUser(): void {
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+
+.toggle-button {
+  padding: 10px 20px;
+  background-color: #FF96A4;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin: 20px auto;
+  display: block;
+}
+
+.toggle-button:hover {
+  background-color: #ff7d90;
+  transform: translateY(-2px);
+}
+
+.toggle-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 </style>
