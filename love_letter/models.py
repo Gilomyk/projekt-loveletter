@@ -2,6 +2,24 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+class Lifestyle(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class RelationshipGoal(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+    
+class Trait(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class CustomUser(AbstractUser):
     age = models.PositiveIntegerField(null=True, blank=True)
     gender = models.CharField(
@@ -11,19 +29,18 @@ class CustomUser(AbstractUser):
         blank=True
     )
     location = models.CharField(max_length=100, null=True, blank=True)
-    interests = models.TextField(null=True, blank=True)
-    lifestyle = models.CharField(max_length=50, null=True, blank=True)
-    relationship_goal = models.CharField(max_length=50, null=True, blank=True)
+    hobbies = models.ManyToManyField(Trait, blank=True)
+    lifestyle = models.ForeignKey(Lifestyle, null=True, blank=True, on_delete=models.SET_NULL)
+    relationship_goal = models.ForeignKey(RelationshipGoal, null=True, blank=True, on_delete=models.SET_NULL)
     profile_picture = models.ImageField(upload_to='media/profile_pictures/', null=True, blank=True)
 
     def __str__(self):
         return self.username
-
-class Trait(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
+    
+    @property
+    def traits(self):
+        # Zwraca queryset cech użytkownika (np. do porównania z preferencjami)
+        return Trait.objects.filter(usertrait__user=self)
 
 class UserTrait(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -47,8 +64,8 @@ class Preference(models.Model):
     age_max = models.PositiveIntegerField(null=True, blank=True)
     preferred_hobbies = models.ManyToManyField(Trait, blank=True)
     preferred_distance = models.PositiveIntegerField(null=True, blank=True)
-    preferred_lifestyle = models.CharField(max_length=50, null=True, blank=True)
-    preferred_goal = models.CharField(max_length=50, null=True, blank=True)
+    preferred_lifestyle = models.ForeignKey(Lifestyle, null=True, blank=True, on_delete=models.SET_NULL)
+    preferred_goal = models.ForeignKey(RelationshipGoal, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"Preferencje {self.user.username}"
