@@ -1,5 +1,8 @@
 <template>
   <div class="home-view">
+    <button class="toggle-button" @click="useRecommendations = !useRecommendations">
+      {{ useRecommendations ? 'Show All Users' : 'Filter By Recommendations' }}
+    </button>
     <div class="card-container">
       <UserCard
         v-for="card in visibleCards"
@@ -17,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import axios from '@/axios'
 import UserCard from '@/components/UserCard.vue'
 
@@ -38,33 +41,58 @@ interface Card {
 
 const noMoreUsers = ref(false)
 const startIndex = ref(0)
-
-// Statyczna lista użytkowników
-// const allUsers = ref<User[]>([
-//   { id: 1, first_name: 'Alice', age: 24, profile_picture: 'https://randomuser.me/api/portraits/women/44.jpg', status: null },
-//   { id: 2, first_name: 'Bob', age: 27, profile_picture: 'https://randomuser.me/api/portraits/men/18.jpg', status: null },
-//   { id: 3, first_name: 'Charlie', age: 22, profile_picture: 'https://randomuser.me/api/portraits/men/45.jpg', status: null },
-//   { id: 4, first_name: 'David', age: 29, profile_picture: 'https://randomuser.me/api/portraits/men/53.jpg', status: null },
-//   { id: 5, first_name: 'Eva', age: 26, profile_picture: 'https://randomuser.me/api/portraits/women/21.jpg', status: null },
-//   { id: 6, first_name: 'Frank', age: 31, profile_picture: 'https://randomuser.me/api/portraits/men/6.jpg', status: null },
-//   { id: 7, first_name: 'Grace', age: 28, profile_picture: 'https://randomuser.me/api/portraits/women/64.jpg', status: null },
-//   { id: 8, first_name: 'Helen', age: 34, profile_picture: 'https://randomuser.me/api/portraits/women/16.jpg', status: null },
-//   { id: 9, first_name: 'Ivy', age: 25, profile_picture: 'https://randomuser.me/api/portraits/women/29.jpg', status: null },
-//   { id: 10, first_name: 'Jack', age: 32, profile_picture: 'https://randomuser.me/api/portraits/men/80.jpg', status: null },
-//   { id: 11, first_name: 'Liam', age: 23, profile_picture: 'https://randomuser.me/api/portraits/men/10.jpg', status: null },
-//   { id: 12, first_name: 'Mia', age: 27, profile_picture: 'https://randomuser.me/api/portraits/women/11.jpg', status: null }
-// ])
-
+const currentUser = ref<User | null>(null)
 // Lista użytkowników pobieranych z bazy
 const allUsers = ref<User[]>([])
-onMounted(async () => {
+const useRecommendations = ref(false)
+
+// Pobierz aktualnego użytkownika
+async function fetchCurrentUser() {
   try {
-    const response = await axios.get('/users/') 
-    console.log('Otrzymany JSON:', response.data)
-     // Endpoint, który zwraca użytkowników
-    allUsers.value = response.data.filter((u: User) => u.id !== 1).map((u: User) => ({ ...u, status: null }))  // Załaduj dane użytkowników
+    const response = await axios.get('/get_current_user/')
+    currentUser.value = response.data
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('Nie udało się pobrać aktualnego użytkownika:', error)
+  }
+}
+
+// Pobierz listę wszystkich użytkowników
+async function fetchAllUsers() {
+  try {
+    const response = await axios.get('/users/')
+    const otherUsers = response.data.filter((u: User) => u.id !== currentUser.value?.id)
+    allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
+  } catch (error) {
+    console.error('Błąd podczas pobierania użytkowników:', error)
+  }
+}
+
+// Pobierz listę rekomendowanych użytkowników
+async function fetchRecommendedUsers() {
+  try {
+    const response = await axios.get('/recommendations/')
+    const otherUsers = response.data.filter((u: User) => u.id !== currentUser.value?.id)
+    allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
+  } catch (error) {
+    console.error('Błąd podczas pobierania rekomendowanych użytkowników:', error)
+  }
+}
+
+// Reaktywne przeładowanie użytkowników po zmianie flagi
+watch(useRecommendations, async (newVal) => {
+  if (newVal) {
+    await fetchRecommendedUsers()
+  } else {
+    await fetchAllUsers()
+  }
+})
+
+onMounted(async () => {
+  await fetchCurrentUser()
+  if (useRecommendations.value) {
+    await fetchRecommendedUsers()
+  } else {
+    await fetchAllUsers()
   }
 })
 
@@ -74,7 +102,7 @@ const visibleCards = computed<Card[]>(() => {
   const len = allUsers.value.length
 
   // jeśli nie ma jeszcze żadnych userów, nie próbuj nic renderować
-  if (len === 0) return cards
+  if (len === 0 || !currentUser.value) return cards
 
   // zabezpiecz, żeby startIndex nigdy nie wyszedł poza zakres
   if (startIndex.value >= len) {
@@ -156,6 +184,30 @@ function nextUser(): void {
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+
+.toggle-button {
+  padding: 10px 20px;
+  background-color: #FF96A4;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin: 20px auto;
+  display: block;
+}
+
+.toggle-button:hover {
+  background-color: #ff7d90;
+  transform: translateY(-2px);
+}
+
+.toggle-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 </style>

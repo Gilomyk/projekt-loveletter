@@ -89,17 +89,16 @@ def get_likes(request):
         return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
 
     likes = Like.objects.filter(liker_id=current_user_id).select_related('liked')
+
     liked_users = [{
         'id': like.liked.id,
         'username': like.liked.username,
         'first_name': like.liked.first_name,
         'age': like.liked.age,
-        'profile_picture': like.liked.profile_picture.url if like.liked.profile_picture else None,
+        'profile_picture': 'http://localhost:8000' + like.liked.profile_picture.url if like.liked.profile_picture else None,
     } for like in likes]
 
     return Response(liked_users)
-
-from django.db import IntegrityError
 
 # Polub użytkownika
 @api_view(['POST'])
@@ -114,12 +113,11 @@ def like_user(request, liked_id):
     liker = get_object_or_404(CustomUser, id=current_user_id)
     liked = get_object_or_404(CustomUser, id=liked_id)
 
-    # Spróbuj stworzyć Like
     like, created = Like.objects.get_or_create(liker=liker, liked=liked)
 
     if not created:
         return Response({'message': 'Już polubiłeś tego użytkownika.'}, status=status.HTTP_200_OK)
-
+    
     # Sprawdź, czy liked wcześniej polubił likera
     if Like.objects.filter(liker=liked, liked=liker).exists():
         # Tworzymy Match – uporządkujmy użytkowników po ID żeby uniknąć duplikatów
@@ -132,7 +130,6 @@ def like_user(request, liked_id):
             return Response({'message': f'Match już istnieje między {user1.username} i {user2.username}.'}, status=status.HTTP_200_OK)
 
     return Response({'message': f'Użytkownik {liker.username} polubił {liked.username}.'}, status=status.HTTP_201_CREATED)
-
 
 @api_view(['GET'])
 def get_user_matches(request):
