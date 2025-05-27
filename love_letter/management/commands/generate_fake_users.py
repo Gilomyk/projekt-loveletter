@@ -48,6 +48,8 @@ class Command(BaseCommand):
                 location=location,
                 lifestyle=lifestyle,
                 relationship_goal=relationship_goal,
+                bio=faker.paragraph(nb_sentences=3),
+                language=random.choice(['Polski', 'Angielski', 'Niemiecki', 'Hiszpański']),
             )
 
             # Add profile picture

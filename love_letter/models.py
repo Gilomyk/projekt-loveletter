@@ -34,6 +34,9 @@ class CustomUser(AbstractUser):
     relationship_goal = models.ForeignKey(RelationshipGoal, null=True, blank=True, on_delete=models.SET_NULL)
     profile_picture = models.ImageField(upload_to='media/profile_pictures/', null=True, blank=True)
 
+    language = models.CharField(max_length=50, null=True, blank=True)
+    bio = models.TextField(null=True, blank=True)
+
     def __str__(self):
         return self.username
     
