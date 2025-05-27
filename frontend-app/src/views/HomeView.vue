@@ -90,7 +90,7 @@ async function fetchRecommendedUsers() {
     const otherUsers = response.data.filter((u: User) => 
       u.id !== currentUser.value?.id && !likedUserIds.value.includes(u.id)
     )
-    likedUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
+    allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
   } catch (error) {
     console.error('Błąd podczas pobierania rekomendowanych użytkowników:', error)
   }
@@ -199,7 +199,6 @@ function nextUser(): void {
   }
 }
 </script>
-
 
 <style scoped>
 .home-view {
