@@ -3,7 +3,6 @@
     <div class="chat-title">
       <h1>Your Matches</h1>
     </div>
-
     <div class="chat-container">
       <!-- Lewa kolumna z listą czatów -->
       <div class="chat-list">
@@ -63,7 +62,7 @@
 </template>
 
 <script>
-import { defineComponent } from "vue";
+import { defineComponent, computed } from "vue";
 import axios from "@/axios";
 import { NIcon } from "naive-ui";
 import { Phone } from "@vicons/fa";

@@ -168,7 +168,6 @@ function nextUser(): void {
 }
 </script>
 
-
 <style scoped>
 .home-view {
   display: flex;

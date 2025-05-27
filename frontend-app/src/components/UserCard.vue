@@ -24,7 +24,9 @@
           <span>Not For Me</span>
         </div>
         <div class="more-info">
-          <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
+          <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToProfile">
+            <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
+          </n-button>
           <span>More info</span>
         </div>
         <div class="button" @click="likeUser">
@@ -42,8 +44,10 @@
         <span class="name-age">{{ user?.first_name }}, {{ user?.age }}</span>
       </div>
       <div class="more-info">
-        <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
-      <span>More info</span>
+        <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToProfile">
+          <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
+        </n-button>
+        <span>More info</span>
     </div>
   </div>
 </div>
@@ -54,6 +58,7 @@ import { defineProps, defineEmits, ref, computed } from 'vue'
 import { NButton, NIcon } from 'naive-ui'
 import { Heart, Times } from '@vicons/fa'
 import { ArrowDown, LongArrowAltLeft, Feather } from '@vicons/fa'
+import { useRouter } from 'vue-router';
 
 // Definicja typów:
 interface User {
@@ -138,6 +143,11 @@ if (props.user.status === null){
   emit('swipe', { direction: 'left', user: props.user }); // poprawiłem swipe na left przy reject
 }
 }
+
+const router = useRouter();
+const goToProfile = () => {
+  router.push({name: 'profile', params: {id: props.user.id}});
+};
 </script>
 
 <style scoped>

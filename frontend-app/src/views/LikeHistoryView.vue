@@ -4,8 +4,10 @@
      <h1>Your Likes</h1>
     </div>
     <div v-if="noLikes === true" class="no-likes-container">
-      <h1>No like history!</h1>
-      <p>It seems you haven’t got anyone in your liked history! Go ahead to the homepage and change that!</p>
+      <div class="no-likes-text">
+        <h1>No like history!</h1>
+        <p>It seems you haven’t got anyone in your liked history!<br> Go ahead to the homepage and change that!</p>        
+      </div>
       <n-button class="home-button" :style="{ backgroundColor: '#E8ADB5' }" @click="goToHome">
         <p>Go to Homepage</p>
       </n-button>
@@ -118,11 +120,13 @@ const displayedLikes = computed<LikedUser[]>(() => {
   width: 95%;
   border-radius: 10px;
   margin: 1vh;
-  text-align:center;
+  text-align: center;
+  align-items: center;
+  font-size: 20px;
 }
 
-.no-like-container h1 {
-  font-size: 40px;
+.no-likes-text {
+  margin: auto;
 }
 
 .home-button {

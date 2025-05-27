@@ -14,6 +14,11 @@ const router = createRouter({
         component: () => import('../views/ChatView.vue'),
       },
       {
+        path: '/profile/:id',
+        name: 'profile',
+        component: () => import('../views/ProfileView.vue'),
+      },
+      {
         path: '/preferences',
         name: 'preferences',
         component: () => import('../views/PreferencesView.vue'),

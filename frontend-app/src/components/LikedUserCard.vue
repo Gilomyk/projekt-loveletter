@@ -8,8 +8,10 @@
         <span class="name-age">{{ user?.first_name }}, {{ user?.age }}</span>
       </div>
       <div class="more-info">
-        <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
-        <span>More info</span>
+          <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToProfile">
+            <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
+          </n-button>
+          <span>More info</span>
       </div>
     </div>
   </div>
@@ -17,8 +19,9 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue'
-import { NIcon } from 'naive-ui'
+import { NButton, NIcon } from 'naive-ui'
 import { ArrowDown } from '@vicons/fa'
+import { useRouter } from 'vue-router';
 
 interface User {
   id: number;
@@ -27,11 +30,14 @@ interface User {
   profile_picture: string;
 }
 
-defineProps<{
+const props = defineProps<{
   user: User;
 }>()
-// dodać na początku 'const props = 'jeśli będą zmiany w renderowaniu
 
+const router = useRouter();
+const goToProfile = () => {
+  router.push({name: 'profile', params: {id: props.user.id}});
+};
 </script>
 
 <style scoped>

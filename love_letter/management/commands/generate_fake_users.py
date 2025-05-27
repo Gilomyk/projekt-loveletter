@@ -5,6 +5,7 @@ import random
 from django.core.files.base import ContentFile
 import requests
 from io import BytesIO
+import os
 
 UNSPLASH_ACCESS_KEY = 'zrTnKSI2jUXvadA3yDi1a3pEnyPrt3eyLLrRnkmDd7w'
 
@@ -62,7 +63,13 @@ class Command(BaseCommand):
                 img_name = f'{username}_profile.jpg'
                 user.profile_picture.save(img_name, ContentFile(img_content.read()), save=True)
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f'Błąd przy pobieraniu zdjęcia dla {username}: {e}'))
+                self.stdout.write(self.style.WARNING(f'Błąd przy pobieraniu zdjęcia dla {username}: {e}, załadowanie placeholder profil.'))
+                dir_path = os.getcwd()
+                image_path = os.path.join(dir_path, "placeholder.png")
+                with open(image_path, "rb") as fh:
+                    buf = BytesIO(fh.read())
+                img_name = f'{username}_profile.jpg'
+                user.profile_picture.save(img_name, ContentFile(buf.read()), save=True)
 
             # Assign user traits
             for trait in hobbies:
