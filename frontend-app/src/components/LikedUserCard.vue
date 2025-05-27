@@ -2,7 +2,6 @@
 <template>
   <div class="card">
     <img :src="user?.profile_picture" alt="Profile" class="profile-image" />
-
     <div class="card-footer">
       <div class="card-header">
         <span class="name-age">{{ user?.first_name }}, {{ user?.age }}</span>
@@ -13,6 +12,12 @@
           </n-button>
           <span>More info</span>
       </div>
+      <div class="button" @click="unsendLetter">
+          <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
+            <n-icon size="24"><PaperPlane/></n-icon>
+          </n-button>
+          <span>Unsend letter</span>
+      </div>
     </div>
   </div>
 </template>
@@ -20,7 +25,7 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
 import { NButton, NIcon } from 'naive-ui'
-import { ArrowDown } from '@vicons/fa'
+import { ArrowDown, LongArrowAltLeft, PaperPlane } from '@vicons/fa'
 import { useRouter } from 'vue-router';
 
 interface User {
@@ -34,10 +39,18 @@ const props = defineProps<{
   user: User;
 }>()
 
+const emit = defineEmits<{
+(e: 'unsend', payload: { user: User }): void;
+}>()
+
 const router = useRouter();
 const goToProfile = () => {
   router.push({name: 'profile', params: {id: props.user.id}});
 };
+
+function unsendLetter() {
+  emit('unsend', { user: props.user });
+}
 </script>
 
 <style scoped>
@@ -111,5 +124,18 @@ const goToProfile = () => {
   font-size: 14px;
   font-weight: bold;
   word-wrap: break-word;
+}
+
+.button {
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+.button span {
+color: #fff;
+font-size: 14px;
+font-weight: bold;
+word-wrap: break-word;
 }
 </style>

@@ -17,6 +17,7 @@
         v-for="(user) in displayedLikes"
         :key="user.id"
         :user="user"
+        @unsend="handleUnsend"
       />
     </div>
   </div>
@@ -28,6 +29,7 @@ import { ref, computed, onMounted } from 'vue';
 import axios from '@/axios'
 import LikedUserCard from '@/components/LikedUserCard.vue'
 import { useRouter } from 'vue-router';
+import { User } from '@vicons/fa';
 
 const router = useRouter();
 const goToHome = () => {
@@ -73,6 +75,18 @@ const displayedLikes = computed<LikedUser[]>(() => {
 
   return likes
 })
+
+function handleUnsend(payload: { user: LikedUser }): void {
+  // powołanie endpointu usunięcia osoby z historii liked danego użytkownika
+
+  // usunięcie danej osoby z frontendowej listy liked userów
+  const index = allLikes.value.indexOf(payload.user, 0);
+  if (index > -1) {
+    allLikes.value.splice(index, 1);
+  }
+}
+
+
 </script>
 
 <style scoped>

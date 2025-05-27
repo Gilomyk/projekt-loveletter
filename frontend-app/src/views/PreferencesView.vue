@@ -212,11 +212,16 @@ export default defineComponent({
 }
 
 .preferences-info {
-  max-width: 15%;
+  max-width: 25%;
 }
 
 .preferences-save-button {
   border-radius: 10px;
+}
+
+.icon-btn {
+  border-radius: 15px;
+  padding: 30px;
 }
 
 .preferences-save-button span {
