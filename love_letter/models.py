@@ -1,4 +1,6 @@
 # Create your models here.
+from django.utils import timezone
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -44,6 +46,17 @@ class CustomUser(AbstractUser):
     def traits(self):
         # Zwraca queryset cech użytkownika (np. do porównania z preferencjami)
         return Trait.objects.filter(usertrait__user=self)
+
+class Message(models.Model):
+    sender = models.ForeignKey('CustomUser', related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey('CustomUser', related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.sender} ➜ {self.receiver}: {self.content[:20]}"
+
 
 class UserTrait(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
