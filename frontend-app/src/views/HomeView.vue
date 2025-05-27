@@ -44,6 +44,8 @@ const startIndex = ref(0)
 const currentUser = ref<User | null>(null)
 // Lista użytkowników pobieranych z bazy
 const allUsers = ref<User[]>([])
+const likedUsers = ref<User[]>([])
+const likedUserIds = ref<number[]>([])
 const useRecommendations = ref(false)
 
 // Pobierz aktualnego użytkownika
@@ -56,11 +58,23 @@ async function fetchCurrentUser() {
   }
 }
 
+// Pobierz listę id polubionych użytkowników
+async function fetchLikedUserIds() {
+  try {
+    const response = await axios.get('/likes/') // lub /matches/, zależnie od implementacji
+    likedUserIds.value = response.data.map((u: User) => u.id)
+  } catch (error) {
+    console.error('Błąd podczas pobierania polubionych użytkowników:', error)
+  }
+}
+
 // Pobierz listę wszystkich użytkowników
 async function fetchAllUsers() {
   try {
     const response = await axios.get('/users/')
-    const otherUsers = response.data.filter((u: User) => u.id !== currentUser.value?.id)
+    const otherUsers = response.data.filter((u: User) => 
+      u.id !== currentUser.value?.id && !likedUserIds.value.includes(u.id)
+    )
     allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
   } catch (error) {
     console.error('Błąd podczas pobierania użytkowników:', error)
@@ -71,12 +85,17 @@ async function fetchAllUsers() {
 async function fetchRecommendedUsers() {
   try {
     const response = await axios.get('/recommendations/')
-    const otherUsers = response.data.filter((u: User) => u.id !== currentUser.value?.id)
+    const otherUsers = response.data.filter((u: User) => 
+      u.id !== currentUser.value?.id && !likedUserIds.value.includes(u.id)
+    )
     allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
   } catch (error) {
     console.error('Błąd podczas pobierania rekomendowanych użytkowników:', error)
   }
 }
+
+
+
 
 // Reaktywne przeładowanie użytkowników po zmianie flagi
 watch(useRecommendations, async (newVal) => {
@@ -89,11 +108,13 @@ watch(useRecommendations, async (newVal) => {
 
 onMounted(async () => {
   await fetchCurrentUser()
+  await fetchLikedUserIds()
   if (useRecommendations.value) {
     await fetchRecommendedUsers()
   } else {
     await fetchAllUsers()
   }
+
 })
 
 // Widoczne karty
