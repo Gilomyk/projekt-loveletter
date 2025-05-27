@@ -94,7 +94,7 @@ DATABASES = {
         'NAME': 'loveletter_db',
         'USER': 'loveletter_user',
         'PASSWORD': 'bezpieczne_haslo',
-        'HOST': 'host.docker.internal',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
