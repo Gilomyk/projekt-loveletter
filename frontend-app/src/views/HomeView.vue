@@ -3,7 +3,18 @@
     <button class="toggle-button" @click="useRecommendations = !useRecommendations">
       {{ useRecommendations ? 'Show All Users' : 'Filter By Recommendations' }}
     </button>
-    <div class="card-container">
+    <div v-if="noMoreUsers === true" class="no-cards-container">
+        <div class="no-cards-header">
+          <span>No more people!</span>
+        </div>
+        <div class="no-cards-info">
+          <p>It seems like there are no more people in your specified area that fit your preferences. Try changing them if you want to see more people!</p>
+        </div>
+        <n-button class="preferences-button" :style="{ backgroundColor: '#58CCD0' }" @click="goToPreferences">
+          <span>Change preferences</span>
+        </n-button>
+    </div>
+    <div v-else class="card-container">
       <UserCard
         v-for="card in visibleCards"
         :key="card.user?.id"
@@ -13,9 +24,6 @@
         @reject="handleReject"
       />
     </div>
-    <div v-if="noMoreUsers">
-      <p>Nie ma więcej użytkowników. Zmień preferencje.</p>
-    </div>
   </div>
 </template>
 
@@ -24,7 +32,8 @@ import { ref, watch, computed, onMounted } from 'vue'
 import axios from '@/axios'
 import UserCard from '@/components/UserCard.vue'
 import Swal from 'sweetalert2'
-
+import { NButton } from 'naive-ui'
+import { useRouter } from 'vue-router'
 
 // Typ pojedynczego użytkownika
 interface User {
@@ -96,9 +105,6 @@ async function fetchRecommendedUsers() {
   }
 }
 
-
-
-
 // Reaktywne przeładowanie użytkowników po zmianie flagi
 watch(useRecommendations, async (newVal) => {
   if (newVal) {
@@ -116,7 +122,6 @@ onMounted(async () => {
   } else {
     await fetchAllUsers()
   }
-
 })
 
 // Widoczne karty
@@ -198,6 +203,11 @@ function nextUser(): void {
     noMoreUsers.value = true
   }
 }
+
+const router = useRouter();
+const goToPreferences = () => {
+  router.push('/preferences');
+};
 </script>
 
 <style scoped>
@@ -228,7 +238,6 @@ function nextUser(): void {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   transition: background-color 0.3s ease, transform 0.2s ease;
   margin: 20px auto;
-  display: block;
 }
 
 .toggle-button:hover {
@@ -239,6 +248,44 @@ function nextUser(): void {
 .toggle-button:active {
   transform: translateY(1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.no-cards-container {
+  background-color: #FFC4C4;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2%;
+  height: 50%;
+  max-width: 50%;
+}
+
+.no-cards-header {
+  font-weight: bolder;
+  font-size: xx-large;
+}
+
+.no-cards-info {
+  font-weight: regular;
+  font-size: large;
+  text-wrap-mode: wrap;
+  max-width: 40%;
+}
+
+.no-cards-info {
+  text-align: center;
+}
+
+.preferences-button {
+  padding: 3%;
+  border-radius: 15px;
+}
+
+.preferences-button span {
+  font-weight:bold; 
+  font-size: x-large;
 }
 
 </style>

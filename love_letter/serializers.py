@@ -9,10 +9,12 @@ class UserSerializer(serializers.ModelSerializer):
     lifestyle = serializers.SerializerMethodField()
     relationship_goal = serializers.SerializerMethodField()
     hobbies = serializers.SerializerMethodField()
+    bio = serializers.SerializerMethodField()
+    language = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'first_name', 'age', 'gender', 'location', 'profile_picture', 'lifestyle', 'relationship_goal', 'hobbies']
+        fields = ['id', 'username', 'first_name', 'age', 'gender', 'location', 'profile_picture', 'lifestyle', 'relationship_goal', 'hobbies', 'bio', 'language']
 
     def get_profile_picture(self, obj):
         request = self.context.get('request')
@@ -43,7 +45,16 @@ class UserSerializer(serializers.ModelSerializer):
         # W przeciwnym razie – zapytanie awaryjne
         return [{'id': ut.trait.id, 'name': ut.trait.name}
                 for ut in UserTrait.objects.filter(user=obj).select_related('trait')]
-
+    
+    def get_bio(self, obj):
+        if obj.bio:
+            return {'content': obj.bio}
+        return None
+    
+    def get_language(self, obj):
+        if obj.language:
+            return {'name': obj.language}
+        return None
 
 class MatchSerializer(serializers.ModelSerializer):
     user1 = UserSerializer()
