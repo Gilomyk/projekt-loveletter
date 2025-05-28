@@ -11,11 +11,11 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: ./Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     command: sh -c "sleep 3 && python manage.py makemigrations --noinput && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - .:/app
+      - ./backend:/app
     ports:
       - "8000:8000"
     depends_on:
@@ -26,8 +26,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend-app
-      dockerfile: Dockerfile
+      context: ../frontend-app
+      dockerfile: ../frontend-app/Dockerfile
     ports:
       - "5173:5173"
     command: yarn dev

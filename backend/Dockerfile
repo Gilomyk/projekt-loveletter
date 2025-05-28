@@ -10,11 +10,11 @@ ENV PYTHONUNBUFFERED=1
 
 RUN pip install --upgrade pip
 
-COPY love_letter/requirements.txt  /app/
+COPY requirements.txt  /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . /app/
+COPY .. /app/
 
 EXPOSE 8000
 
