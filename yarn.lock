@@ -7,6 +7,11 @@
   resolved "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.4.tgz"
   integrity sha512-nOT2vZNw6hJ+z43oP1SPea/G/6AbN6X+bGNhNuq8NtRHy4wsMhw765IKLNmnjek7GvjWBYQ8Q5VBoYTFg9y1UQ==
 
+"@koas/v-hscroll@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmjs.org/@koas/v-hscroll/-/v-hscroll-1.0.3.tgz"
+  integrity sha512-6PYyYbQoWSZ/1JdgU8R0TA/zAbK6Gst0cHcNs9Ce596zyfKjKDuMWulTY/PSl6YsTgAJyz0WadE2Z1H+Fjpfmw==
+
 esbuild@^0.25.4:
   version "0.25.4"
   resolved "https://registry.npmjs.org/esbuild/-/esbuild-0.25.4.tgz"

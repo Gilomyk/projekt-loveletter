@@ -2,14 +2,21 @@
 <template>
   <div class="card">
     <img :src="user?.profile_picture" alt="Profile" class="profile-image" />
-
     <div class="card-footer">
       <div class="card-header">
         <span class="name-age">{{ user?.first_name }}, {{ user?.age }}</span>
       </div>
       <div class="more-info">
-        <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
-        <span>More info</span>
+          <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToProfile">
+            <n-icon class="arrow-down" :size="24"><ArrowDown /></n-icon>
+          </n-button>
+          <span>More info</span>
+      </div>
+      <div class="button" @click="unsendLetter">
+          <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }">
+            <n-icon size="24"><PaperPlane/></n-icon>
+          </n-button>
+          <span>Unsend letter</span>
       </div>
     </div>
   </div>
@@ -17,8 +24,9 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue'
-import { NIcon } from 'naive-ui'
-import { ArrowDown } from '@vicons/fa'
+import { NButton, NIcon } from 'naive-ui'
+import { ArrowDown, LongArrowAltLeft, PaperPlane } from '@vicons/fa'
+import { useRouter } from 'vue-router';
 
 interface User {
   id: number;
@@ -27,11 +35,22 @@ interface User {
   profile_picture: string;
 }
 
-defineProps<{
+const props = defineProps<{
   user: User;
 }>()
-// dodać na początku 'const props = 'jeśli będą zmiany w renderowaniu
 
+const emit = defineEmits<{
+(e: 'unsend', payload: { user: User }): void;
+}>()
+
+const router = useRouter();
+const goToProfile = () => {
+  router.push({name: 'profile', params: {id: props.user.id}});
+};
+
+function unsendLetter() {
+  emit('unsend', { user: props.user });
+}
 </script>
 
 <style scoped>
@@ -105,5 +124,18 @@ defineProps<{
   font-size: 14px;
   font-weight: bold;
   word-wrap: break-word;
+}
+
+.button {
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+.button span {
+color: #fff;
+font-size: 14px;
+font-weight: bold;
+word-wrap: break-word;
 }
 </style>
