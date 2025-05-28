@@ -84,7 +84,7 @@ async function fetchAllUsers() {
   try {
     const response = await axios.get('/users/')
     const otherUsers = response.data.filter((u: User) => 
-      u.id !== currentUser.value?.id && !likedUserIds.value.includes(u.id)
+      u.id !== currentUser.value?.id && !likedUserIds.value.includes(u.id) && u.id !== 1
     )
     allUsers.value = otherUsers.map((u: User) => ({ ...u, status: null }))
   } catch (error) {

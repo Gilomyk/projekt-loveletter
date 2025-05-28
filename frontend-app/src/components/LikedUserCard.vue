@@ -27,6 +27,8 @@ import { defineProps } from 'vue'
 import { NButton, NIcon } from 'naive-ui'
 import { ArrowDown, LongArrowAltLeft, PaperPlane } from '@vicons/fa'
 import { useRouter } from 'vue-router';
+import axios from 'axios'
+// message = useMessage()
 
 interface User {
   id: number;
@@ -48,8 +50,13 @@ const goToProfile = () => {
   router.push({name: 'profile', params: {id: props.user.id}});
 };
 
-function unsendLetter() {
-  emit('unsend', { user: props.user });
+async function unsendLetter() {
+  try {
+    await axios.post(`/api/unlike/${props.user.id}/`, {}, { withCredentials: true })
+    emit('unsend', { user: props.user })
+  } catch (error) {
+    console.error('Błąd przy usuwaniu polubienia:', error)
+  }
 }
 </script>
 

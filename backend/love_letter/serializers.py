@@ -48,13 +48,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_bio(self, obj):
         if obj.bio:
-            return {'content': obj.bio}
+            return obj.bio
         return None
 
     def get_language(self, obj):
         if obj.language:
-            return {'name': obj.language}
-        return None
+            return obj.language
+        return
 
 class MatchSerializer(serializers.ModelSerializer):
     user1 = UserSerializer()

@@ -37,7 +37,7 @@
                     </li>
                 </ul>
                 <div class="text-area">
-                    <span>{{user?.bio["content"]}}</span>
+                    <span>{{ user?.bio }}</span>
                 </div>
             </div>
             <div class="data-plain inherit color-a">
@@ -70,7 +70,7 @@
                     <h1>Languages</h1>   
                     <n-icon size="32"><Language /></n-icon>                 
                 </div>
-                <span>{{ user?.language["name"] }}</span>
+                <span>{{ user?.language }}</span>
             </div> 
         </div>
     </div>
