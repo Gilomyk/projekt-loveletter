@@ -37,7 +37,11 @@
                     </li>
                 </ul>
                 <div class="text-area">
+<<<<<<< HEAD
                     <span>{{ user?.bio["content"] }}</span>                    
+=======
+                    <span>{{user?.bio}}</span>
+>>>>>>> 21f156f67bec84ce4d53cfdb90de2335edf5e547
                 </div>
             </div>
             <div class="data-plain inherit color-a">
@@ -65,12 +69,20 @@
                 </div>
                 <span>{{ user?.lifestyle["name"] }}</span>
             </div>
+<<<<<<< HEAD
             <div class="data-plain inherit color-a">
                 <div class="header">
                     <h1>Languages</h1>   
                     <n-icon size="32"><Language /></n-icon>                 
                 </div>
                 <span>{{ user?.language["name"] }}</span>
+=======
+            <div class="data-plain-multiple inherit">
+                <h1>Languages</h1>
+                <ul>
+                    {{user?.language}}
+                </ul>
+>>>>>>> 21f156f67bec84ce4d53cfdb90de2335edf5e547
             </div> 
         </div>
     </div>
@@ -94,8 +106,19 @@ interface User {
   lifestyle: string
   relationship_goal: string
   hobbies: string[]
+<<<<<<< HEAD
   bio: string
   language: string
+=======
+  language: string
+  bio: string
+}
+
+interface Component {
+    name: string;
+    fields: string[];
+    icon: typeof NIcon;
+>>>>>>> 21f156f67bec84ce4d53cfdb90de2335edf5e547
 }
 
 const route = useRoute()
