@@ -17,4 +17,5 @@ urlpatterns = [
     path('traits/', TraitList.as_view(), name='traits-list'),
     path('messages/<int:match_id>/', match_messages, name='match-messages'),
     path('messages/<int:match_id>/send/', send_message, name='send-message'),
+    path('api/unlike/<int:liked_id>/', unlike_user, name='unlike-user'),
 ]
