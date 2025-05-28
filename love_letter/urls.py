@@ -1,19 +1,5 @@
 from django.urls import path
-from .views import (
-    get_users,
-    get_user_recommendations,
-    get_user_matches,
-    get_likes,
-    like_user,
-    switch_user,
-    get_current_user,
-    set_current_user_information,
-    get_user_preferences,
-    set_user_preferences,
-    LifestyleList,
-    RelationshipGoalList,
-    TraitList,
-)
+from .views import *
 
 urlpatterns = [
     path('users/', get_users, name='user_list'),
@@ -29,4 +15,6 @@ urlpatterns = [
     path('lifestyles/', LifestyleList.as_view(), name='lifestyles-list'),
     path('relationship-goals/', RelationshipGoalList.as_view(), name='relationship-goals-list'),
     path('traits/', TraitList.as_view(), name='traits-list'),
+    path('messages/<int:match_id>/', match_messages, name='match-messages'),
+    path('messages/<int:match_id>/send/', send_message, name='send-message'),
 ]

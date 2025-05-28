@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Match, Like, Preference, Trait, UserTrait, Lifestyle, RelationshipGoal
+from .models import *
 
 class UserSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'first_name', 'age', 'gender', 'location', 'profile_picture', 'lifestyle', 'relationship_goal', 'hobbies', 'bio', 'language']
+        fields = ['id', 'username', 'first_name', 'age', 'gender', 'location', 'profile_picture', 'lifestyle', 'relationship_goal', 'hobbies', 'language', 'bio']
 
     def get_profile_picture(self, obj):
         request = self.context.get('request')
@@ -45,12 +45,12 @@ class UserSerializer(serializers.ModelSerializer):
         # W przeciwnym razie – zapytanie awaryjne
         return [{'id': ut.trait.id, 'name': ut.trait.name}
                 for ut in UserTrait.objects.filter(user=obj).select_related('trait')]
-    
+
     def get_bio(self, obj):
         if obj.bio:
             return {'content': obj.bio}
         return None
-    
+
     def get_language(self, obj):
         if obj.language:
             return {'name': obj.language}
@@ -103,3 +103,13 @@ class PreferenceSerializer(serializers.ModelSerializer):
             'preferred_goal',
             'preferred_hobbies',
         ]
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id', 'sender', 'receiver', 'content', 'timestamp', 'is_read']
+
+class CreateMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['content']
