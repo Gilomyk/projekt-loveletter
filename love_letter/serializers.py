@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Match, Like, Preference, Trait, UserTrait, Lifestyle, RelationshipGoal
+from .models import *
 
 class UserSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
@@ -92,3 +92,13 @@ class PreferenceSerializer(serializers.ModelSerializer):
             'preferred_goal',
             'preferred_hobbies',
         ]
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['id', 'sender', 'receiver', 'content', 'timestamp', 'is_read']
+
+class CreateMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ['content']

@@ -102,6 +102,13 @@ class Match(models.Model):
     user2 = models.ForeignKey(CustomUser, related_name='matcher2', on_delete=models.CASCADE)
     matched_at = models.DateTimeField(auto_now_add=True)
 
+    # metoda zwracająca wiadomości dla danego matcha
+    def get_messages(self):
+        return Message.objects.filter(
+            models.Q(sender=self.user1, receiver=self.user2) |
+            models.Q(sender=self.user2, receiver=self.user1)
+        ).order_by('timestamp')
+
     class Meta:
         unique_together = ('user1', 'user2')
 

@@ -5,18 +5,18 @@ from django.http import JsonResponse
 def api_test(request):
     return JsonResponse({'message': 'u mnie działa xd'})
 '''
-from rest_framework import generics
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import CustomUser, Preference, Match, Like, Lifestyle, RelationshipGoal, Trait, UserTrait
-from .serializers import MatchSerializer, UserSerializer, LikeSerializer, PreferenceSerializer, LifestyleSerializer, RelationshipGoalSerializer, TraitSerializer
+
+from .models import *
+from .serializers import *
 from django.db import IntegrityError
 from django.db.models import Q, Prefetch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.reverse import reverse
 from rest_framework import status
 
@@ -34,6 +34,43 @@ class TraitList(generics.ListAPIView):
     queryset = Trait.objects.all()
     serializer_class = TraitSerializer
 
+
+@api_view(['GET'])
+def match_messages(request, match_id):
+    try:
+        match = Match.objects.get(id=match_id)
+    except Match.DoesNotExist:
+        return Response({'error': 'Match not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    messages = match.get_messages()
+    serializer = MessageSerializer(messages, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def send_message(request, match_id):
+    match = get_object_or_404(Match, id=match_id)
+
+    # Tymczasowy sposób pobierania usera (np. bez logowania)
+    sender_id = request.session.get('user_id')
+    if not sender_id:
+        return Response({'error': 'User not authenticated in session'}, status=401)
+
+    if sender_id not in [match.user1.id, match.user2.id]:
+        return Response({'error': 'You are not part of this match'}, status=403)
+
+    receiver = match.user2 if sender_id == match.user1.id else match.user1
+
+    serializer = CreateMessageSerializer(data=request.data)
+    if serializer.is_valid():
+        message = Message.objects.create(
+            sender_id=sender_id,
+            receiver=receiver,
+            content=serializer.validated_data['content']
+        )
+        return Response(MessageSerializer(message).data, status=201)
+    return Response(serializer.errors, status=400)
+    
 # Przeglądarka dla REST API
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -46,7 +83,9 @@ def api_root(request, format=None):
         'likes': reverse('user_likes', request=request, format=format),
         'switch_user(id=1)': reverse('switch_user', kwargs={'user_id': default_user_id}, request=request, format=format),
         'current_user': reverse('get_current_user', request=request, format=format),
-        'admin': '/admin/',
+        'messages(id=1)': reverse('match-messages', kwargs={'match_id': 1}, request=request, format=format),
+        'send-message': reverse('send-message', kwargs={'match_id': 1}, request=request, format=format),
+        'admin': 'http://localhost:8000/admin/',
     })
 
 # (test moment) Pobieramy użytkowników, całe info
