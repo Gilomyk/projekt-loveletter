@@ -272,3 +272,54 @@ def get_user_recommendations(request):
 
     serializer = UserSerializer(recommended_users, many=True, context={'request': request})
     return Response(serializer.data)
+
+@api_view(['POST'])
+def set_current_user_information(request, current_user_id):
+    if current_user_id < 0:
+        return Response({'error': 'Użytkownik nie istnieje'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = CustomUser.objects.get(id=current_user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Użytkownik nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data
+    try:
+        # Pobierz lub utwórz preferencje użytkownika
+        preference, created = Preference.objects.get_or_create(user=user)
+
+        # Aktualizuj pola
+        preference.preferred_gender = data.get('preferred_gender', preference.preferred_gender)
+        preference.age_min = data.get('age_min', preference.age_min)
+        preference.age_max = data.get('age_max', preference.age_max)
+        preference.preferred_distance = data.get('preferred_distance', preference.preferred_distance)
+
+        # Powiązania z innymi modelami
+        lifestyle_id = data.get('preferred_lifestyle')
+        if lifestyle_id:
+            try:
+                lifestyle = Lifestyle.objects.get(id=lifestyle_id)
+                preference.preferred_lifestyle = lifestyle
+            except Lifestyle.DoesNotExist:
+                return Response({'error': 'Nieprawidłowy lifestyle'}, status=status.HTTP_400_BAD_REQUEST)
+
+        goal_id = data.get('preferred_goal')
+        if goal_id:
+            try:
+                goal = RelationshipGoal.objects.get(id=goal_id)
+                preference.preferred_goal = goal
+            except RelationshipGoal.DoesNotExist:
+                return Response({'error': 'Nieprawidłowy cel'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Hobbies (traity) - many to many
+        hobby_ids = data.get('preferred_hobbies')
+        if hobby_ids is not None:
+            traits = Trait.objects.filter(id__in=hobby_ids)
+            preference.preferred_hobbies.set(traits)
+
+        preference.save()
+
+        return Response({'message': 'Preferencje zapisane pomyślnie.'}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -13,40 +13,64 @@
             <div class="data-picture inherit">
                 <img :src="user?.profile_picture" alt="Profile" class="profile-image"/>
             </div>
-            <div class="data-list inherit">
-                <h1>Basic Information</h1>
+            <div class="data-list inherit color-a">
+                <div class="header">
+                    <h1>Basic Information</h1>   
+                    <n-icon size="32"><InfoCircle /></n-icon>                 
+                </div>
                 <ul>
-                    <li>Location: {{ user?.location }}</li>
-                    <li>Education: PLACEHOLDER</li>
-                    <li>Occupation: PLACEHOLDER</li>
-                    <li>About Me: </li>
+                    <li>
+                        <n-icon size="32"><MapMarkerAlt /></n-icon>
+                        <span>Location: {{ user?.location }}</span>
+                    </li>
+                    <!-- <li>
+                        <n-icon size="32"><BookOpen /></n-icon>
+                        <span>Education: PLACEHOLDER</span>
+                    </li>
+                    <li>
+                        <n-icon size="32"><Suitcase /></n-icon>
+                        <span>Occupation: PLACEHOLDER</span>
+                    </li> -->
+                    <li>
+                        <n-icon size="32"><User /></n-icon>
+                        <span>About Me:</span>  
+                    </li>
                 </ul>
                 <div class="text-area">
-                    <span>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</span>                    
+                    <span>{{ user?.bio["content"] }}</span>                    
                 </div>
             </div>
-            <div class="data-plain inherit">
-                <h1>Dating Goals</h1>
+            <div class="data-plain inherit color-a">
+                <div class="header">
+                    <h1>Dating Goals</h1>   
+                    <n-icon size="32"><Heart /></n-icon>                 
+                </div>
                 <span>{{ user?.relationship_goal["name"] }}</span>
             </div>    
-            <div class="data-plain-multiple inherit">
-                <h1>Hobbies</h1>  
+            <div class="data-plain-multiple inherit color-c">
+                <div class="header">
+                    <h1>Hobbies</h1>   
+                    <n-icon size="32"><Dumbbell /></n-icon>                 
+                </div>
                 <ul>
                     <li v-for="(index, item) in user?.hobbies">
                         {{ index["name"] }}
                     </li>
                 </ul>
             </div>  
-            <div class="data-plain inherit">
-                <h1>Lifestyle Choices</h1>
+            <div class="data-plain inherit color-b">
+                <div class="header">
+                    <h1>Lifestyle Choices</h1>   
+                    <n-icon size="32"><Home /></n-icon>                 
+                </div>
                 <span>{{ user?.lifestyle["name"] }}</span>
             </div>
-            <div class="data-plain-multiple inherit">
-                <h1>Languages</h1>
-                <ul>
-                    <li>English</li>
-                    <li>German</li>
-                </ul>
+            <div class="data-plain inherit color-a">
+                <div class="header">
+                    <h1>Languages</h1>   
+                    <n-icon size="32"><Language /></n-icon>                 
+                </div>
+                <span>{{ user?.language["name"] }}</span>
             </div> 
         </div>
     </div>
@@ -56,7 +80,7 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import axios from '@/axios'
 import { NButton, NIcon } from 'naive-ui'
-import { LongArrowAltLeft, User } from '@vicons/fa'
+import { LongArrowAltLeft, User, InfoCircle, Heart, Dumbbell, Home, Language, MapMarkerAlt, Suitcase, BookOpen } from '@vicons/fa'
 import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 
@@ -70,12 +94,8 @@ interface User {
   lifestyle: string
   relationship_goal: string
   hobbies: string[]
-}
-
-interface Component {
-    name: string;
-    fields: string[];
-    icon: typeof NIcon;
+  bio: string
+  language: string
 }
 
 const route = useRoute()
@@ -114,8 +134,8 @@ const goBack = () => {
     max-width: 100%;
     margin: 20px;
     display: grid;
-    grid-template-columns: [col] auto [col] auto;
-    grid-template-rows: [row] auto [row] auto [row] auto [row] auto ;
+    grid-template-columns: [col] 40% [col] auto;
+    grid-template-rows: [row] auto [row] 500px [row] auto [row] auto ;
     grid-column-gap: 10vh;
     grid-row-gap: 5vh;
     align-content: start end;
@@ -127,16 +147,44 @@ const goBack = () => {
     border-radius: inherit;
 }
 
+.lighter-color {
+    background-color: #FFDADA;
+}
+
+.color-a {
+    background-color: #FF9191;
+}
+
+.color-b {
+    background-color: #FFFFFF;
+}
+
+.color-c {
+    background-color: #82F7FB;
+}
+
 .inherit h1 {
     margin-left: 5%;
 }
 
+.header {
+    margin-right: 5%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .inherit span {
-    margin-left: 5%;
+    font-size: large;
+}
+
+.inherit li {
+    font-size: large;
 }
 
 .data-first-name {
-    background-color: #FFEFEF;
+    background-color: #FFFFFF;
     text-wrap-mode: nowrap;
     justify-content: center;
 }
@@ -156,23 +204,30 @@ const goBack = () => {
 .icon-btn {
     padding: auto;
     background-color: #82F7FB;
-    border-radius: inherit
+    border-radius: inherit;
 }
 
 .data-picture {
-    border-radius: inherit;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background-color: #21263a;
+    border: 6px solid;
+    border-image: linear-gradient(135deg, #cd7373, #000000) 6;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .data-picture img {
     border-radius: inherit;
-    max-width: 100%;
+    height: 100%;
 }
 
 .data-list {
-    background-color: #FF9191;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
 
 .data-list ul {
@@ -181,25 +236,42 @@ const goBack = () => {
 }
 
 .data-list li {
-    margin-bottom: 5%;
+    margin-bottom: 2%;
+    margin-right: 10%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.about-me {
+    display: flex;
+    flex-direction: column;
+}
+
+.about-me-header {
+    display: flex;
+    flex-direction: row;
+    text-wrap-mode: nowrap;
 }
 
 .text-area {
-    margin: 5%;
-    border-radius: inherit;
+    margin: 0 5% 5% 5%;
+    border-radius: 5px;
     background-color: #FFEFEF;
-    max-height: 100%;
+    height: 100%;
+    display: flex;
+    justify-items: center;
+    justify-content: center;
 }
 
 .text-area span {
-    padding: 5%;
-    font-size: large;
+    margin: 2%;
     text-wrap-mode: wrap;
-    text-align: center;
+    max-height: auto;
+    font-size: large;
 }
 
 .data-plain {
-    background-color: #FFF8F8;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -207,19 +279,33 @@ const goBack = () => {
 
 .data-plain span {
     margin-bottom: 5%;
+    background-color: #FFCCCC;
+    width: fit-content;
+    padding: 1%;
+    border-radius: inherit;
+    margin-left: 5%;
 }
 
 .data-plain-multiple {
-    background-color: #FFF8F8;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    border-radius: inherit;
 }
 
 .data-plain-multiple ul {
     list-style: none;
     display: flex;
     flex-direction: row;
-    gap: 2vw;
+    border-radius: inherit;
+    gap: 2%;
+}
+
+.data-plain-multiple li {
+    background-color: #FFEFEF;
+    width: fit-content;
+    padding: 1%;
+    border-radius: inherit;
+    margin-bottom: 2%;
 }
 </style>

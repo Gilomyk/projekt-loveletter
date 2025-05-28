@@ -37,6 +37,15 @@
           </n-button>
           <span>Liked People</span>
       </div>
+
+      <div class="button">
+          <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToMyProfile">
+              <n-icon size="32">
+                  <User />
+              </n-icon>
+          </n-button>
+          <span>Profile</span>
+      </div>
     </div>
   
 
@@ -56,7 +65,7 @@
 
 <script setup lang="ts">
 import { NButton, NIcon, NDropdown  } from 'naive-ui';
-import { Home, Cog, Inbox, Users, ArrowDown } from '@vicons/fa';
+import { Home, Cog, Inbox, Users, ArrowDown, User } from '@vicons/fa';
 import { useRouter } from 'vue-router';
 import { ref,  onMounted } from 'vue';
 import axios from '@/axios';
@@ -79,6 +88,10 @@ const goToPreferences = () => {
 
 const goToLikeHistory = () => {
   router.push('/liked');
+};
+
+const goToMyProfile = () => {
+  router.push('/profile/me');
 };
 
 

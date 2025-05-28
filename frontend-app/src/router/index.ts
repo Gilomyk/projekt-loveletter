@@ -27,6 +27,11 @@ const router = createRouter({
         path: '/liked',
         name: 'liked',
         component: () => import('../views/LikeHistoryView.vue'),
+      },
+      {
+        path: '/profile/me',
+        name: 'my-profile',
+        component: () => import('../views/MyProfileView.vue'),
       }
     ],
   })

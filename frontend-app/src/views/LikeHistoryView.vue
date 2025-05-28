@@ -85,8 +85,6 @@ function handleUnsend(payload: { user: LikedUser }): void {
     allLikes.value.splice(index, 1);
   }
 }
-
-
 </script>
 
 <style scoped>
