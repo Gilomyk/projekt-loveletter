@@ -22,7 +22,7 @@
                     <li>About Me: </li>
                 </ul>
                 <div class="text-area">
-                    <span>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</span>                    
+                    <span>{{user?.bio}}</span>
                 </div>
             </div>
             <div class="data-plain inherit">
@@ -44,8 +44,7 @@
             <div class="data-plain-multiple inherit">
                 <h1>Languages</h1>
                 <ul>
-                    <li>English</li>
-                    <li>German</li>
+                    {{user?.language}}
                 </ul>
             </div> 
         </div>
@@ -70,6 +69,8 @@ interface User {
   lifestyle: string
   relationship_goal: string
   hobbies: string[]
+  language: string
+  bio: string
 }
 
 interface Component {
