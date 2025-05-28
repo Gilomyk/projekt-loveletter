@@ -170,6 +170,29 @@ def like_user(request, liked_id):
 
     return Response({'message': f'Użytkownik {liker.username} polubił {liked.username}.'}, status=status.HTTP_201_CREATED)
 
+@api_view(['POST'])
+def unlike_user(request, liked_id):
+    current_user_id = request.session.get('user_id')
+    if not current_user_id:
+        return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    liker = get_object_or_404(CustomUser, id=current_user_id)
+    liked = get_object_or_404(CustomUser, id=liked_id)
+
+    try:
+        like = Like.objects.get(liker=liker, liked=liked)
+        like.delete()
+    except Like.DoesNotExist:
+        return Response({'error': 'Nie polubiłeś tego użytkownika.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Usuwamy match jeśli istniał (niezależnie od kolejności userów)
+    Match.objects.filter(
+        models.Q(user1=liker, user2=liked) | models.Q(user1=liked, user2=liker)
+    ).delete()
+
+    return Response({'message': f'Usunięto polubienie i ewentualny match z {liked.username}.'}, status=status.HTTP_200_OK)
+
+
 @api_view(['GET'])
 def get_user_matches(request):
     user_id = request.session.get('user_id')
