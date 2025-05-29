@@ -11,7 +11,7 @@
           v-for="(user, index) in allUsers"
           :key="user.id"
           :class="{ active: selectedUserIndex === index }"
-          @click="selectedUserIndex = index"
+          @click="selectUser(index)"
         >
           <div class="profile-gradient">
             <img class="chat-image" :src="user.profile_picture" alt="Profile" />
@@ -24,14 +24,14 @@
       </div>
 
       <!-- Okno czatu -->
-      <div class="chat-window" v-if="allUsers.length > 0">
+      <div class="chat-window" v-if="selectedUser">
         <!-- Nagłówek -->
         <div class="chat-header">
           <div class="chat-info">
             <div class="profile-gradient">
-              <img class="profile-image" :src="allUsers[selectedUserIndex].profile_picture" alt="Profile" />
+              <img class="profile-image" :src="selectedUser.profile_picture" alt="Profile" />
             </div>
-            <span class="current-chat-name">{{ allUsers[selectedUserIndex].first_name }}</span>
+            <span class="current-chat-name">{{ selectedUser.first_name }}</span>
           </div>
           <n-icon size="24" color="#fff" class="call-icon">
             <Phone />
@@ -41,18 +41,22 @@
         <!-- Główna część czatu -->
         <div class="chat-content">
           <div
-            v-for="(message, idx) in allUsers[selectedUserIndex].messages || []"
+            v-for="(message, idx) in messages"
             :key="idx"
-            :class="['message-' + message.side]"
+            :class="['message-' + (message.sender === currentUserId ? 'right' : 'left'), 'message-bubble']"
           >
-            <p>{{ message.text }}</p>
+            <p>{{ message.content }}</p>
+            <small v-if="message.sender === currentUserId" class="read-status">
+              {{ message.is_read ? 'Read' : 'Unread' }}
+            </small>
           </div>
+          <div v-if="isTyping" class="typing-indicator">{{ selectedUser.first_name }} is typing...</div>
         </div>
 
         <!-- Stopka czatu -->
         <div class="chat-footer">
-          <input type="text" class="message-input" placeholder="Type a message">
-          <n-icon size="24" color="#fff" class="send-icon">
+          <input type="text" class="message-input" v-model="newMessage" placeholder="Type a message" @input="sendTypingSignal">
+          <n-icon size="24" color="#fff" class="send-icon" @click="sendMessage">
             <Send16Regular />
           </n-icon>
         </div>
@@ -66,7 +70,9 @@ import { defineComponent, computed } from "vue";
 import axios from "@/axios";
 import { NIcon } from "naive-ui";
 import { Phone } from "@vicons/fa";
-import { Send16Regular }from "@vicons/fluent"
+import { Send16Regular } from "@vicons/fluent";
+
+let socket = null;
 
 export default defineComponent({
   name: "ChatView",
@@ -77,39 +83,168 @@ export default defineComponent({
   },
   data() {
     return {
+      currentUserId: null,
       selectedUserIndex: 0,
+      matchId: null,
       allUsers: [],
+      matches: [],
+      messages: [],
+      newMessage: "",
+      isTyping: false,
     };
   },
+  watch: {
+    messages: {
+      handler() {
+        this.markMessagesAsRead();
+      },
+      deep: true
+    }
+  },
+  computed: {
+    selectedUser() {
+      return this.allUsers[this.selectedUserIndex];
+    },
+  },
+  methods: {
+    /** UI methods */
+    selectUser(index) {
+      this.selectedUserIndex = index;
+      const selected = this.allUsers[index];
+
+      const foundMatch = this.matches.find(match =>
+        (match.user1.id === this.currentUserId && match.user2.id === selected.id) ||
+        (match.user2.id === this.currentUserId && match.user1.id === selected.id)
+      );
+
+      if (!foundMatch) return console.error("❌ No match found for selected user");
+
+      this.matchId = foundMatch.id;
+      this.connectWebSocket(this.matchId);
+      this.fetchMessages(this.matchId);
+      this.markMessagesAsRead();
+    },
+
+    /** Networking */
+    fetchMessages(matchId) {
+      axios.get(`/messages/${matchId}/`).then(response => {
+        this.messages = response.data;
+      });
+    },
+
+    connectWebSocket(matchId) {
+      try {
+        socket = new WebSocket(`ws://127.0.0.1:8000/ws/chat/${matchId}/`);
+
+        socket.onopen = () => {
+          console.log("✅ WebSocket connected.");
+          this.markMessagesAsRead();
+        }
+        socket.onerror = error => console.error("❌ WebSocket error:", error);
+        socket.onclose = event => console.warn(`⚠️ WebSocket closed (${event.code}):`, event.reason || "No reason");
+
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "new_message") {
+              const msg = {
+                ...data.message,
+                sender: data.message.sender_id,
+                receiver: data.message.receiver_id,
+              };
+
+              this.messages.push(msg);
+
+            } else if (data.type === "typing") {
+              if (data.user_id !== this.currentUserId) {
+                this.isTyping = true;
+                setTimeout(() => (this.isTyping = false), 1500);
+              }
+
+            } else if (data.type === "message_read") {
+              const messageId = data.message_id;
+
+              const msg = this.messages.find(m => m.id === messageId);
+              if (msg && !msg.is_read) {
+                msg.is_read = true;
+              }
+
+            } else {
+              console.warn("⚠️ Unknown message type:", data);
+            }
+          } catch (err) {
+            console.error("❌ Error parsing WebSocket message:", event.data, err);
+          }
+        };
+      } catch (err) {
+        console.error("❌ WebSocket connection failed:", err);
+      }
+    },
+
+    /** Messaging */
+    sendMessage() {
+      if (!this.newMessage) return;
+
+      socket.send(JSON.stringify({
+        type: "new_message",
+        content: this.newMessage,
+        receiver_id: this.selectedUser.id,
+        sender_id: this.currentUserId
+      }));
+
+      this.newMessage = "";
+    },
+
+    sendTypingSignal() {
+      socket.send(JSON.stringify({
+        type: "typing",
+        user_id: this.currentUserId
+      }));
+    },
+
+    markMessagesAsRead() {
+      const unreadIds = this.messages
+        .filter(msg => !msg.is_read && msg.sender === this.selectedUser.id)
+        .map(msg => msg.id);
+
+      if (!unreadIds.length) return;
+
+      const sendAll = () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          unreadIds.forEach(id => {
+            socket.send(JSON.stringify({ type: "message_read", message_id: id }));
+          });
+        } else {
+          setTimeout(sendAll, 100);
+        }
+      };
+
+      sendAll();
+    }
+  },
+
   mounted() {
     axios.get("/get_current_user/")
-      .then((userResponse) => {
-        const currentUserId = userResponse.data.id;
+      .then(userResponse => {
+        this.currentUserId = userResponse.data.id;
 
-        // Następnie pobieramy matche
-        return axios.get("/chat/")
-          .then((matchResponse) => {
-            const users = matchResponse.data.map(match => {
-              const matchedUser = match.user1.id === currentUserId ? match.user2 : match.user1;
-              return {
-                ...matchedUser,
-                lastMessage: 'Hej! 👋', // tymczasowo
-                messages: [
-                  { text: 'Cześć, jak się masz?', side: 'left' },
-                  { text: 'W porządku, a Ty?', side: 'right' }
-                ]
-              };
+        axios.get("/chat/")
+          .then(matchResponse => {
+            this.matches = matchResponse.data;
+
+            this.allUsers = matchResponse.data.map(match => {
+              const matchedUser = match.user1.id === this.currentUserId ? match.user2 : match.user1;
+              return { ...matchedUser, lastMessage: '', messages: [] };
             });
 
-            this.allUsers = users;
+            this.selectUser(0);
           });
-      })
-      .catch(error => {
-        console.error("Błąd podczas ładowania danych użytkownika lub matchy:", error);
       });
   }
 });
 </script>
+
 
 <style scoped>
 .chat-view {
@@ -249,6 +384,7 @@ export default defineComponent({
 }
 
 .message-left {
+  position: relative;
   background-color: #FF8484;
   border-radius: 10px;
   padding-inline: 10px;
@@ -261,6 +397,7 @@ export default defineComponent({
 }
 
 .message-right {
+  position: relative;
   background-color: #D5D5D5;
   border-radius: 10px;
   padding-inline: 10px;
@@ -270,6 +407,29 @@ export default defineComponent({
   word-wrap: break-word;
   white-space: normal;
   font-weight: bold;
+}
+
+/* Nowe */
+.read-status {
+  display: none;
+  font-size: 10px;
+  color: #555;
+  position: absolute;
+  bottom: -14px;
+  right: 4px;
+  font-weight: normal;
+}
+
+.message-left:hover .read-status,
+.message-right:hover .read-status {
+  display: inline;
+}
+
+.typing-indicator {
+  font-size: 12px;
+  color: #ccc;
+  margin: 5px;
+  font-style: italic;
 }
 
 .chat-footer {
