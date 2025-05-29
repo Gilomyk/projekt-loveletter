@@ -8,3 +8,7 @@ django-cors-headers
 djangorestframework
 faker
 requests
+channels==4.2.2
+channels_redis==4.2.1
+websockets
+daphne==4.1.2

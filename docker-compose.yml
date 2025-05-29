@@ -1,4 +1,16 @@
+networks:
+  internal:
+    internal: true
+  external:
+    driver: bridge
+
 services:
+  redis:
+    image: redis:latest
+    networks:
+      - internal
+    ports:
+      - "6379:6379"
   db:
     image: postgres:17
     restart: always
@@ -6,6 +18,8 @@ services:
       POSTGRES_DB: loveletter_db
       POSTGRES_USER: loveletter_user
       POSTGRES_PASSWORD: bezpieczne_haslo
+    networks:
+    - internal
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -23,11 +37,14 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=loveletter.settings
       - PYTHONUNBUFFERED=1
+    networks:
+      - internal
+      - external
 
   frontend:
     build:
-      context: ../frontend-app
-      dockerfile: ../frontend-app/Dockerfile
+      context: ./frontend-app
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     command: yarn dev
@@ -36,6 +53,9 @@ services:
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
+    networks:
+      - internal
+      - external
 
 
 volumes:

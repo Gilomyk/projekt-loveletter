@@ -115,7 +115,7 @@ def get_current_user(request):
         return Response({"detail": "Brak wybranego użytkownika"}, status=404)
     try:
         user = CustomUser.objects.get(id=user_id)
-        serializer = UserSerializer(user)
+        serializer = UserSerializer(user, context={'request': request})
         return Response(serializer.data)
     except CustomUser.DoesNotExist:
         return Response({"detail": "Użytkownik nie istnieje"}, status=404)
@@ -385,3 +385,62 @@ def set_current_user_information(request, current_user_id):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def update_current_user_profile(request):
+    current_user_id = request.session.get('user_id')
+    try:
+        user = CustomUser.objects.get(id=current_user_id)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'Użytkownik nie istnieje'}, status=status.HTTP_404_NOT_FOUND)
+
+    data = request.data
+
+    # Proste pola
+    user.first_name = data.get('first_name', user.first_name)
+    user.age = data.get('age', user.age)
+    user.location = data.get('location', user.location)
+    user.bio = data.get('bio', user.bio)
+    user.language = data.get('language', user.language)
+
+    # Lifestyle
+    lifestyle_id = data.get('lifestyle')
+    if lifestyle_id:
+        try:
+            lifestyle = Lifestyle.objects.get(id=lifestyle_id)
+            user.lifestyle = lifestyle
+        except Lifestyle.DoesNotExist:
+            return Response({'error': 'Nieprawidłowy styl życia'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Relationship Goal
+    goal_id = data.get('relationship_goal')
+    if goal_id:
+        try:
+            goal = RelationshipGoal.objects.get(id=goal_id)
+            user.relationship_goal = goal
+        except RelationshipGoal.DoesNotExist:
+            return Response({'error': 'Nieprawidłowy cel'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Hobby (ManyToMany)
+    hobby_ids = request.data.getlist('hobbies')
+    if hobby_ids is not None:
+        try:
+            # Usuń wszystkie aktualne hobby przypisane do użytkownika
+            UserTrait.objects.filter(user=user).delete()
+
+            # Dodaj nowe hobby (jeśli lista nie jest pusta)
+            traits = Trait.objects.filter(id__in=hobby_ids)
+            for trait in traits:
+                UserTrait.objects.create(user=user, trait=trait)
+
+            print("Zaktualizowane hobby użytkownika:", list(traits))
+        except Trait.DoesNotExist:
+            return Response({'error': 'Nieprawidłowe hobby'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Zdjęcie profilowe (jeśli jest przesyłane jako plik)
+    if request.FILES.get('profile_picture'):
+        user.profile_picture = request.FILES['profile_picture']
+
+    user.save()
+
+    return Response({'message': 'Dane użytkownika zaktualizowane pomyślnie.'}, status=status.HTTP_200_OK)
