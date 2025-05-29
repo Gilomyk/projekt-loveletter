@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Like, Match
+from .models import *
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -11,3 +11,8 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Like)
 admin.site.register(Match)
+admin.site.register(Lifestyle)
+admin.site.register(RelationshipGoal)
+admin.site.register(Trait)
+admin.site.register(UserTrait)
+admin.site.register(Message)
