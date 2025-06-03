@@ -396,8 +396,6 @@ const goBack = () => {
     background-color: #FFEFEF;
     height: 100%;
     display: flex;
-    justify-items: center;
-    justify-content: center;
 }
 
 .text-area span {

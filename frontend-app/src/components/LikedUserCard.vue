@@ -51,12 +51,7 @@ const goToProfile = () => {
 };
 
 async function unsendLetter() {
-  try {
-    await axios.post(`/api/unlike/${props.user.id}/`, {}, { withCredentials: true })
-    emit('unsend', { user: props.user })
-  } catch (error) {
-    console.error('Błąd przy usuwaniu polubienia:', error)
-  }
+  emit('unsend', { user: props.user })
 }
 </script>
 

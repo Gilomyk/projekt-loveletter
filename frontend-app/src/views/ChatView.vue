@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-view">
+  <div class="chat-view-when-matches" v-if="allUsers.length > 0">
     <div class="chat-title">
       <h1>Your Matches</h1>
     </div>
@@ -33,9 +33,9 @@
             </div>
             <span class="current-chat-name">{{ selectedUser.first_name }}</span>
           </div>
-          <n-icon size="24" color="#fff" class="call-icon">
+          <!-- <n-icon size="24" color="#fff" class="call-icon">
             <Phone />
-          </n-icon>
+          </n-icon> -->
         </div>
 
         <!-- Główna część czatu -->
@@ -63,14 +63,29 @@
       </div>
     </div>
   </div>
+  <div class="chat-view-no-matches" v-else>
+    <div class="chat-title">
+      <h1>Your Matches</h1>
+    </div>
+    <div class="chat-container-no-matches">
+      <div class="no-matches-text">
+        <h1>No matches!</h1>
+        <p>It seems you haven’t got any maches! <br>Go ahead to the homepage and change that!</p>        
+      </div>
+      <n-button class="home-button" :style="{ backgroundColor: '#E8ADB5' }" @click="goToHome">
+        <p>Go to Homepage</p>
+      </n-button>
+    </div>
+  </div>
 </template>
 
 <script>
 import { defineComponent, computed } from "vue";
 import axios from "@/axios";
-import { NIcon } from "naive-ui";
+import { NIcon, NButton } from "naive-ui";
 import { Phone } from "@vicons/fa";
 import { Send16Regular } from "@vicons/fluent";
+import { useRouter } from 'vue-router';
 
 let socket = null;
 
@@ -78,6 +93,7 @@ export default defineComponent({
   name: "ChatView",
   components: {
     NIcon,
+    NButton,
     Phone,
     Send16Regular,
   },
@@ -91,6 +107,7 @@ export default defineComponent({
       messages: [],
       newMessage: "",
       isTyping: false,
+      router: useRouter(),
     };
   },
   watch: {
@@ -130,6 +147,10 @@ export default defineComponent({
       axios.get(`/messages/${matchId}/`).then(response => {
         this.messages = response.data;
       });
+    },
+
+    goToHome() {
+      this.router.push('/');
     },
 
     connectWebSocket(matchId) {
@@ -247,13 +268,47 @@ export default defineComponent({
 
 
 <style scoped>
-.chat-view {
+.chat-view-when-matches {
   background-color: #FFCBCB;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 20px;
   height: 82vh;
+  border-radius: 10px;
+}
+
+.chat-view-no-matches {
+  background-color: #FFCBCB;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.chat-container-no-matches {
+  padding-top: 10%;
+  padding-bottom: 10%;
+  background-color: #FFDFDF;
+  height: 100%;
+  width: 95%;
+  border-radius: 10px;
+  margin: 1vh;
+  text-align: center;
+  align-items: center;
+  font-size: 20px;
+}
+
+.no-matches-text {
+  margin: auto;
+}
+
+.home-button {
+  padding: 2%;
+  border-radius: 10px;
+  font-size: 30px;
 }
 
 .chat-title {
