@@ -37,7 +37,7 @@
                     </li>
                 </ul>
                 <div class="text-area">
-                    <span>{{user?.bio["content"]}}</span>
+                    <span>{{ user?.bio["content"] }}</span>
                 </div>
             </div>
             <div class="data-plain inherit color-a">

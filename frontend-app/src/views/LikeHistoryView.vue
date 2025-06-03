@@ -76,13 +76,20 @@ const displayedLikes = computed<LikedUser[]>(() => {
   return likes
 })
 
-function handleUnsend(payload: { user: LikedUser }): void {
-  // powołanie endpointu usunięcia osoby z historii liked danego użytkownika
+async function handleUnsend(payload: { user: LikedUser }) {
+  try {
+    const response = await axios.post(`/api/unlike/${payload.user.id}/`)
+    console.log('Unlike OK:', response.data)
 
-  // usunięcie danej osoby z frontendowej listy liked userów
-  const index = allLikes.value.indexOf(payload.user, 0);
-  if (index > -1) {
-    allLikes.value.splice(index, 1);
+    // Usuń z frontendowej listy
+    const index = allLikes.value.indexOf(payload.user)
+    if (index > -1) {
+      allLikes.value.splice(index, 1)
+    }
+
+  } catch (error) {
+    console.error('Błąd podczas usuwania polubienia:', error)
+
   }
 }
 </script>
