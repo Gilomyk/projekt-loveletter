@@ -114,3 +114,17 @@ class Match(models.Model):
 
     def __str__(self):
         return f"Match: {self.user1.username} & {self.user2.username}"
+    
+class Report(models.Model):
+    reporter = models.ForeignKey(CustomUser, related_name='reporter', on_delete=models.CASCADE)
+    reported = models.ForeignKey(CustomUser, related_name='reported', on_delete=models.CASCADE)
+    reasoning = models.TextField()
+
+    def __str__(self):
+        return f"{self.reporter} ➜ {self.reported}: {self.reasoning[:20]}"
+    
+class IcebreakerQuestion(models.Model):
+    content = models.TextField()
+
+    def __str__(self):
+        return f"{self.content[:75]}"

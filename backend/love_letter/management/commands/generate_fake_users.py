@@ -15,7 +15,6 @@ LIFESTYLES = ['Party Animal', 'Homebody', 'Married to the Grind', 'Academic Weap
 DATING_GOALS = ['Still thinking about it', 'Long-term relationship', 'Short-term fun', 'Marriage']
 HOBBIES = ['Climbing', 'Fencing', 'Computer Games', 'Coding', 'Hiking']
 
-
 class Command(BaseCommand):
     help = 'Generate fake users for testing with preferences and traits'
 
