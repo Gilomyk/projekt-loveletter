@@ -39,7 +39,7 @@
       </div>
 
       <div class="button">
-          <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToMyProfile">
+          <n-button class="reports-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToMyProfile">
               <n-icon size="32">
                   <User />
               </n-icon>
@@ -48,24 +48,33 @@
       </div>
     </div>
   
-
-    <!-- Left Dropdown Button (Previously Right) -->
-    <n-dropdown trigger="click" :options="users" @select="switchUser" >
-      <n-button class="dropdown-btn" :style="{ backgroundColor: '#EA8F8F' }">
-        <div class="user-info">
-          <span>{{ currentUser?.username}}</span>
-          <n-icon>
-            <ArrowDown />
-          </n-icon>
-        </div>
-      </n-button>
-    </n-dropdown>
+    <div class="right-bar">
+      <div class="button" v-if="currentUser && currentUser.username === 'admin'">
+        <n-button class="icon-btn" :style="{ backgroundColor: '#E8ADB5' }" @click="goToReports">
+            <n-icon size="32">
+                <ExclamationCircle />
+            </n-icon>
+        </n-button>
+        <span>Reports</span>
+      </div>
+      <!-- Left Dropdown Button (Previously Right) -->
+      <n-dropdown trigger="click" :options="users" @select="switchUser" >
+        <n-button class="dropdown-btn" :style="{ backgroundColor: '#EA8F8F' }">
+          <div class="user-info">
+            <span>{{ currentUser?.username}}</span>
+            <n-icon>
+              <ArrowDown />
+            </n-icon>
+          </div>
+        </n-button>
+      </n-dropdown>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { NButton, NIcon, NDropdown  } from 'naive-ui';
-import { Home, Cog, Inbox, Users, ArrowDown, User } from '@vicons/fa';
+import { Home, Cog, Inbox, Users, ArrowDown, User, ExclamationCircle } from '@vicons/fa';
 import { useRouter } from 'vue-router';
 import { ref,  onMounted } from 'vue';
 import axios from '@/axios';
@@ -94,6 +103,9 @@ const goToMyProfile = () => {
   router.push('/profile/me');
 };
 
+const goToReports = () => {
+  router.push('/reports');
+};
 
 // Pobierz listę użytkowników
 const fetchUsers = async () => {
@@ -184,11 +196,30 @@ onMounted(async () => {
   color: #333;
 }
 
+.right-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 10px;
+}
+
 .dropdown-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 140px;
+  height: 66px;
+  border-radius: 8px;
+  padding: 5px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.reports-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 85px;
   height: 66px;
   border-radius: 8px;
   padding: 5px;

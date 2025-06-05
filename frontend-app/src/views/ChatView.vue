@@ -56,6 +56,9 @@
         <!-- Stopka czatu -->
         <div class="chat-footer">
           <input type="text" class="message-input" v-model="newMessage" placeholder="Type a message" @input="sendTypingSignal">
+          <n-icon size="24" color="#fff" class="icebreaker-icon" @click="getRandomIcebreaker">
+            <Hammer />
+          </n-icon>
           <n-icon size="24" color="#fff" class="send-icon" @click="sendMessage">
             <Send16Regular />
           </n-icon>
@@ -83,7 +86,7 @@
 import { defineComponent, computed } from "vue";
 import axios from "@/axios";
 import { NIcon, NButton } from "naive-ui";
-import { Phone } from "@vicons/fa";
+import { Phone, Hammer } from "@vicons/fa";
 import { Send16Regular } from "@vicons/fluent";
 import { useRouter } from 'vue-router';
 
@@ -96,6 +99,7 @@ export default defineComponent({
     NButton,
     Phone,
     Send16Regular,
+    Hammer
   },
   data() {
     return {
@@ -242,6 +246,9 @@ export default defineComponent({
       };
 
       sendAll();
+    },
+    getRandomIcebreaker() {
+      this.newMessage = "random icebreaker";
     }
   },
 
@@ -492,6 +499,7 @@ export default defineComponent({
   display: flex;
   padding: 10px;
   align-items: center;
+  justify-items: space-around;
 }
 
 .message-input {
@@ -503,6 +511,12 @@ export default defineComponent({
 }
 
 .send-icon {
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.icebreaker-icon {
+  margin-right: 1%;
   cursor: pointer;
   font-size: 24px;
 }

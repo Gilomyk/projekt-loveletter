@@ -173,8 +173,8 @@ onMounted(async () => {
     first_name.value = u.first_name || ''
     age.value = u.age || 18
     location.value = u.location || ''
-    bio.value = u.bio?.content || ''
-    language.value = u.language?.name || ''
+    bio.value = u.bio || ''
+    language.value = u.language || ''
     lifestyle.value = u.lifestyle?.id?.toString() || null
     dating_goal.value = u.relationship_goal?.id?.toString() || null
     filtered_hobbies.value = u.hobbies.map((h: any) => h.id.toString())
