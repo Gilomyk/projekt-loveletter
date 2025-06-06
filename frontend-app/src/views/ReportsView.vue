@@ -103,30 +103,40 @@ export default defineComponent({
   },
   methods: {
     fetchReports() {
-    //   axios.get(`/messages/${matchId}/`).then(response => {
-    //     this.messages = response.data;
-    //   });
-    },
+    axios.get('/reports/')
+      .then((response) => {
+        this.reports = response.data;
+      })
+      .catch((error) => {
+        console.error('Błąd podczas pobierania zgłoszeń:', error);
+      });
+  },
     denyReport(report) {
-        const index = this.reports.indexOf(report)
-        if (index > -1) {
-            this.reports.splice(index, 1)
-        }
-        console.log('Denied report')
-    },
+      axios.post(`/report/${report.id}/deny/`)
+        .then(() => {
+          const index = this.reports.indexOf(report);
+          if (index > -1) this.reports.splice(index, 1);
+        })
+        .catch((error) => {
+          console.error('Błąd przy odrzuceniu zgłoszenia:', error);
+        });
+    }
+,
     acceptReport(report) {
-        const index = this.reports.indexOf(report)
-        if (index > -1) {
-            this.reports.splice(index, 1)
-        }
-        console.log('Accepted report')
-
-        // delete reported account
+      axios.post(`/report/${report.id}/accept/`)
+        .then(() => {
+          const index = this.reports.indexOf(report);
+          if (index > -1) this.reports.splice(index, 1);
+        })
+        .catch((error) => {
+          console.error('Błąd przy akceptacji zgłoszenia:', error);
+        });
     }
   },
   mounted() {
+  this.fetchReports();
+}
 
-  }
 });
 </script>
 

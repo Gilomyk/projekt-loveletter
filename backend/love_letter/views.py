@@ -502,4 +502,29 @@ def deny_report(request, id):
     report.delete()
     return Response({'message': 'Zgłoszenie odrzucone.'})
 
+@api_view(['GET'])
+def get_reports(request):
+    reports = Report.objects.select_related('reporter', 'reported').all()
+    data = [
+        {
+            'id': r.id,
+            'reasoning': r.reasoning,
+            'reporter': {
+                'id': r.reporter.id,
+                'first_name': r.reporter.first_name,
+                'profile_picture': r.reporter.profile_picture.url if r.reporter.profile_picture else '',
+                'age': r.reporter.age
+            },
+            'reported': {
+                'id': r.reported.id,
+                'first_name': r.reported.first_name,
+                'profile_picture': r.reported.profile_picture.url if r.reported.profile_picture else '',
+                'age': r.reported.age
+            }
+        }
+        for r in reports
+    ]
+    return Response(data)
+
+
 

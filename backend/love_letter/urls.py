@@ -23,4 +23,5 @@ urlpatterns = [
     path('report/', submit_report, name='submit_report'),
     path('report/<int:id>/accept/', accept_report, name='accept_report'),
     path('report/<int:id>/deny/', deny_report, name='deny_report'),
+    path('reports/', get_reports, name='get_reports'),
 ]
