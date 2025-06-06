@@ -454,3 +454,52 @@ def update_current_user_profile(request):
     user.save()
 
     return Response({'message': 'Dane użytkownika zaktualizowane pomyślnie.'}, status=status.HTTP_200_OK)
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Report, CustomUser
+
+@api_view(['POST'])
+def submit_report(request):
+    reporter_id = request.session.get('user_id')
+    if not reporter_id:
+        return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    reported_user_id = request.data.get('reported_user_id')
+    reasons = request.data.get('reasons')
+
+    if not reported_user_id or not reasons:
+        return Response({'error': 'Niekompletne dane.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    reporter = CustomUser.objects.get(id=reporter_id)
+    reported = CustomUser.objects.get(id=reported_user_id)
+
+    report = Report.objects.create(
+        reporter=reporter,
+        reported=reported,
+        reasoning='\n'.join(reasons)
+    )
+
+    return Response({'message': 'Zgłoszenie zapisane.'}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def accept_report(request, id):
+    report = get_object_or_404(Report, id=id)
+    reported_user = report.reported
+
+    reported_user.delete()
+
+    report.delete()
+
+    return Response({'message': 'Zgłoszenie zaakceptowane i użytkownik usunięty.'})
+
+
+@api_view(['POST'])
+def deny_report(request, id):
+    report = get_object_or_404(Report, id=id)
+    report.delete()
+    return Response({'message': 'Zgłoszenie odrzucone.'})
+
+

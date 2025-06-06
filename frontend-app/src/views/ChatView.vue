@@ -209,10 +209,8 @@ export default defineComponent({
         reported_user_id: this.selectedUser.id,
         reasons: reasons,
       });
-      this.$message.success('Zgłoszenie zostało wysłane.');
     } catch (error) {
       console.error('Błąd przy zgłaszaniu:', error);
-      this.$message.error('Nie udało się wysłać zgłoszenia.');
     }
 
     this.showReportPopup = false;
