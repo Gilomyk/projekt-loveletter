@@ -36,6 +36,9 @@
           <!-- <n-icon size="24" color="#fff" class="call-icon">
             <Phone />
           </n-icon> -->
+          <span class="report-icon" @click="showReportPopup = true" style="cursor: pointer; font-size: 20px; color: #ff4d4f; margin-left: auto;">
+            🚨
+          </span>
         </div>
 
         <!-- Główna część czatu -->
@@ -80,12 +83,71 @@
       </n-button>
     </div>
   </div>
+
+<n-config-provider
+  :theme-overrides="{
+    Checkbox: {
+      colorChecked: '#f3d0d5',
+      borderChecked: '1px solid #f3d0d5',
+      colorCheckedHover: '#f3d0d5'
+    },
+    Dialog: {
+      iconColorInfo: '#f3d0d5'
+    }
+  }"
+>
+<n-modal
+  v-model:show="showReportPopup"
+  title="Zgłoś użytkownika"
+  preset="dialog"
+  type="info"
+  style="width: 400px;"
+>
+  <p>Zaznacz powód zgłoszenia:</p>
+
+  <n-checkbox-group v-model:value="reportReasons">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <n-checkbox value="obraźliwe treści" :checked-color="'#f3d0d5'">Obraźliwe treści</n-checkbox>
+      <n-checkbox value="spam" :checked-color="'#f3d0d5'">Spam</n-checkbox>
+      <n-checkbox value="nieodpowiednie zachowanie" :checked-color="'#f3d0d5'">Nieodpowiednie zachowanie</n-checkbox>
+      <n-checkbox value="inne" :checked-color="'#f3d0d5'">Inne</n-checkbox>
+    </div>
+  </n-checkbox-group>
+
+  <div v-if="reportReasons.includes('inne')" style="margin-top: 10px;">
+    <n-input
+      v-model:value="customReason"
+      type="textarea"
+      placeholder="Opisz, co się stało..."
+    />
+  </div>
+
+  <template #action>
+    <n-button @click="submitReport" type="primary" style="background-color: #f3d0d5; color: black;">
+      Zgłoś
+    </n-button>
+    <n-button @click="showReportPopup = false">
+      Anuluj
+    </n-button>
+  </template>
+</n-modal>
+</n-config-provider>
+
+
 </template>
 
 <script>
 import { defineComponent, computed } from "vue";
 import axios from "@/axios";
-import { NIcon, NButton } from "naive-ui";
+import {
+  NIcon,
+  NButton,
+  NModal,
+  NInput,
+  NCheckbox,
+  NCheckboxGroup,
+  NConfigProvider
+} from "naive-ui";
 import { Phone, Hammer } from "@vicons/fa";
 import { Send16Regular } from "@vicons/fluent";
 import { useRouter } from 'vue-router';
@@ -95,12 +157,17 @@ let socket = null;
 export default defineComponent({
   name: "ChatView",
   components: {
-    NIcon,
-    NButton,
-    Phone,
-    Send16Regular,
-    Hammer
-  },
+  NIcon,
+  NButton,
+  NModal,
+  NInput,
+  NCheckbox,
+  NCheckboxGroup,
+    NConfigProvider,
+  Phone,
+  Send16Regular,
+  Hammer
+},
   data() {
     return {
       currentUserId: null,
@@ -112,6 +179,9 @@ export default defineComponent({
       newMessage: "",
       isTyping: false,
       router: useRouter(),
+      showReportPopup: false,
+      reportReasons: [],
+      customReason: '',
     };
   },
   watch: {
@@ -128,6 +198,27 @@ export default defineComponent({
     },
   },
   methods: {
+    async submitReport() {
+    const reasons = [...this.reportReasons];
+    if (this.reportReasons.includes('inne') && this.customReason.trim()) {
+      reasons.push(`inne: ${this.customReason}`);
+    }
+
+    try {
+      await axios.post('/report/', {
+        reported_user_id: this.selectedUser.id,
+        reasons: reasons,
+      });
+      this.$message.success('Zgłoszenie zostało wysłane.');
+    } catch (error) {
+      console.error('Błąd przy zgłaszaniu:', error);
+      this.$message.error('Nie udało się wysłać zgłoszenia.');
+    }
+
+    this.showReportPopup = false;
+    this.reportReasons = [];
+    this.customReason = '';
+  },
     /** UI methods */
     selectUser(index) {
       this.selectedUserIndex = index;
