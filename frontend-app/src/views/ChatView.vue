@@ -247,8 +247,14 @@ export default defineComponent({
 
       sendAll();
     },
-    getRandomIcebreaker() {
-      this.newMessage = "random icebreaker";
+    async getRandomIcebreaker() {
+      try {
+        const response = await axios.get('/icebreaker/');
+        this.newMessage = response.data.question;
+      } catch (error) {
+        console.error('Błąd podczas pobierania pytania:', error);
+        this.newMessage = 'Błąd: nie udało się pobrać pytania.';
+      }
     }
   },
 

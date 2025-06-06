@@ -5,6 +5,7 @@ from django.http import JsonResponse
 def api_test(request):
     return JsonResponse({'message': 'u mnie działa xd'})
 '''
+import random
 
 from .models import *
 from .serializers import *
@@ -192,6 +193,15 @@ def unlike_user(request, liked_id):
 
     return Response({'message': f'Usunięto polubienie i ewentualny match z {liked.username}.'}, status=status.HTTP_200_OK)
 
+
+@api_view(['GET'])
+def get_random_icebreaker(request):
+    questions = list(IcebreakerQuestion.objects.all())
+    if not questions:
+        return Response({'error': 'Brak pytań w bazie.'}, status=status.HTTP_404_NOT_FOUND)
+
+    question = random.choice(questions)
+    return Response({'question': question.content}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def get_user_matches(request):

@@ -19,4 +19,5 @@ urlpatterns = [
     path('messages/<int:match_id>/send/', send_message, name='send-message'),
     path('api/unlike/<int:liked_id>/', unlike_user, name='unlike-user'),
     path('update_current_user_profile/', update_current_user_profile, name='update_current_user_profile'),
+    path('icebreaker/', get_random_icebreaker, name='get_random_icebreaker'),
 ]
