@@ -39,14 +39,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
         elif event == 'new_message':
-            content = data.get('content')
+            content_encrypted = data.get('content_encrypted')
+            iv = data.get('iv')
             sender_id = data.get('sender_id')
 
-            if not content or not sender_id:
+            if not content_encrypted or not sender_id or not iv:
                 return  # ignore invalid data
 
-            message = await self.create_message(sender_id, content)
-            # Broadcast new message to group
+            message = await self.create_message(sender_id, content_encrypted, iv)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -55,7 +55,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'id': message.id,
                         'sender_id': message.sender.id,
                         'receiver_id': message.receiver.id,
-                        'content': message.content,
+                        'content_encrypted': message.content_encrypted,
+                        'iv': message.iv,  # dodaj iv do payloadu
                         'timestamp': message.timestamp.isoformat(),
                         'is_read': message.is_read,
                     }
@@ -95,16 +96,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     @database_sync_to_async
-    def create_message(self, sender_id, content):
+    def create_message(self, sender_id, content_encrypted, iv):
         try:
             match = Match.objects.get(id=self.match_id)
             sender = CustomUser.objects.get(id=sender_id)
         except (Match.DoesNotExist, CustomUser.DoesNotExist):
             return None
 
-        # Receiver to the other user in the match
         receiver = match.user2 if sender == match.user1 else match.user1
-        message = Message.objects.create(sender=sender, receiver=receiver, content=content)
+        message = Message.objects.create(
+            sender=sender,
+            receiver=receiver,
+            content_encrypted=content_encrypted,
+            iv=iv  # zapisz IV do bazy
+        )
         return message
 
     @database_sync_to_async

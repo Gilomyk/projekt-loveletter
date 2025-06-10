@@ -107,9 +107,9 @@ class PreferenceSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'receiver', 'content', 'timestamp', 'is_read']
+        fields = ['id', 'sender', 'receiver', 'content_encrypted', 'iv', 'timestamp', 'is_read']
 
 class CreateMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ['content']
+        fields = ['content_encrypted', 'iv']

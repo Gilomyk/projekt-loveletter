@@ -15,7 +15,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
@@ -67,10 +68,29 @@ def send_message(request, match_id):
         message = Message.objects.create(
             sender_id=sender_id,
             receiver=receiver,
-            content=serializer.validated_data['content']
+            content_encrypted=serializer.validated_data['content_encrypted'],
+            iv=serializer.validated_data['iv']
         )
         return Response(MessageSerializer(message).data, status=201)
     return Response(serializer.errors, status=400)
+
+@api_view(["GET"])
+def get_encryption_key(request, match_id):
+    try:
+        match = get_object_or_404(Match, id=match_id)
+        sender_id = request.session.get('user_id')
+
+        if not sender_id:
+            return Response({'error': 'User not authenticated in session'}, status=401)
+
+        if sender_id not in [match.user1.id, match.user2.id]:
+            return Response({'error': 'You are not part of this match'}, status=403)
+        
+        if sender_id != match.user1.id and sender_id != match.user2.id:
+            return Response({"detail": "Forbidden"}, status=403)
+        return Response({"key": match.encryption_key})
+    except Match.DoesNotExist:
+        return Response({"detail": "Not found"}, status=404)
     
 # Przeglądarka dla REST API
 @api_view(['GET'])

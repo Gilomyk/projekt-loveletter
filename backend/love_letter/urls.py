@@ -24,4 +24,5 @@ urlpatterns = [
     path('report/<int:id>/accept/', accept_report, name='accept_report'),
     path('report/<int:id>/deny/', deny_report, name='deny_report'),
     path('reports/', get_reports, name='get_reports'),
+    path("match/<int:match_id>/key/", get_encryption_key),
 ]

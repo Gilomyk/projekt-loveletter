@@ -182,6 +182,7 @@ export default defineComponent({
       showReportPopup: false,
       reportReasons: [],
       customReason: '',
+      aesKeyRaw: null,
     };
   },
   watch: {
@@ -230,6 +231,17 @@ export default defineComponent({
       if (!foundMatch) return console.error("❌ No match found for selected user");
 
       this.matchId = foundMatch.id;
+
+      axios.get(`/match/${this.matchId}/key/`)
+      .then(resp => {
+        const binaryString = atob(resp.data.key);
+        const keyBytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          keyBytes[i] = binaryString.charCodeAt(i);
+        }
+        this.aesKeyRaw = keyBytes;
+      });
+
       this.connectWebSocket(this.matchId);
       this.fetchMessages(this.matchId);
       this.markMessagesAsRead();
@@ -238,7 +250,18 @@ export default defineComponent({
     /** Networking */
     fetchMessages(matchId) {
       axios.get(`/messages/${matchId}/`).then(response => {
-        this.messages = response.data;
+        const decryptPromises = response.data.map(msg =>
+          this.decrypt(msg.content_encrypted, msg.iv, this.aesKeyRaw)
+            .then(decrypted => ({ ...msg, content: decrypted }))
+            .catch(err => {
+              console.error("❌ Decryption error:", err);
+              return { ...msg, content: '[DECRYPTION FAILED]' };
+            })
+        );
+
+        Promise.all(decryptPromises).then(decryptedMessages => {
+          this.messages = decryptedMessages;
+        });
       });
     },
 
@@ -262,13 +285,19 @@ export default defineComponent({
             const data = JSON.parse(event.data);
 
             if (data.type === "new_message") {
-              const msg = {
-                ...data.message,
-                sender: data.message.sender_id,
-                receiver: data.message.receiver_id,
-              };
-
-              this.messages.push(msg);
+              this.decrypt(data.message.content_encrypted, data.message.iv, this.aesKeyRaw)
+                .then(decryptedContent => {
+                  const msg = {
+                    ...data.message,
+                    content: decryptedContent,
+                    sender: data.message.sender_id,
+                    receiver: data.message.receiver_id
+                  };
+                  this.messages.push(msg);
+                })
+                .catch(err => {
+                  console.error("❌ Decryption failed:", err);
+                });
 
             } else if (data.type === "typing") {
               if (data.user_id !== this.currentUserId) {
@@ -300,12 +329,15 @@ export default defineComponent({
     sendMessage() {
       if (!this.newMessage) return;
 
-      socket.send(JSON.stringify({
-        type: "new_message",
-        content: this.newMessage,
-        receiver_id: this.selectedUser.id,
-        sender_id: this.currentUserId
-      }));
+      this.encrypt(this.newMessage, this.aesKeyRaw).then(encrypted => {
+        socket.send(JSON.stringify({
+          type: "new_message",
+          content_encrypted: encrypted.ciphertext,
+          iv: encrypted.iv,
+          receiver_id: this.selectedUser.id,
+          sender_id: this.currentUserId
+        }));
+      });
 
       this.newMessage = "";
     },
@@ -317,7 +349,7 @@ export default defineComponent({
       }));
     },
 
-    markMessagesAsRead() {
+    async markMessagesAsRead() {
       const unreadIds = this.messages
         .filter(msg => !msg.is_read && msg.sender === this.selectedUser.id)
         .map(msg => msg.id);
@@ -344,12 +376,32 @@ export default defineComponent({
         console.error('Błąd podczas pobierania pytania:', error);
         this.newMessage = 'Błąd: nie udało się pobrać pytania.';
       }
+    },
+    async encrypt(text, keyRaw) {
+      const key = await crypto.subtle.importKey("raw", keyRaw, "AES-GCM", false, ["encrypt"]);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encoded = new TextEncoder().encode(text);
+
+      const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
+
+      return {
+        ciphertext: btoa(String.fromCharCode(...new Uint8Array(ciphertext))),
+        iv: btoa(String.fromCharCode(...iv))
+      };
+    },
+    async decrypt(ciphertextB64, ivB64, keyRaw) {
+      const key = await crypto.subtle.importKey("raw", keyRaw, "AES-GCM", false, ["decrypt"]);
+      const iv = Uint8Array.from(atob(ivB64), c => c.charCodeAt(0));
+      const ciphertext = Uint8Array.from(atob(ciphertextB64), c => c.charCodeAt(0));
+
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+      return new TextDecoder().decode(decrypted);
     }
   },
 
   mounted() {
     axios.get("/get_current_user/")
-      .then(userResponse => {
+      .then(async userResponse => {
         this.currentUserId = userResponse.data.id;
 
         axios.get("/chat/")
