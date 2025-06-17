@@ -15,7 +15,6 @@ LIFESTYLES = ['Party Animal', 'Homebody', 'Married to the Grind', 'Academic Weap
 DATING_GOALS = ['Still thinking about it', 'Long-term relationship', 'Short-term fun', 'Marriage']
 HOBBIES = ['Climbing', 'Fencing', 'Computer Games', 'Coding', 'Hiking']
 
-
 class Command(BaseCommand):
     help = 'Generate fake users for testing with preferences and traits'
 
@@ -68,6 +67,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(f'Błąd przy pobieraniu zdjęcia dla {username}: {e}, załadowanie placeholder profil.'))
                 dir_path = os.getcwd()
                 image_path = os.path.join(dir_path, "placeholder.png")
+                self.stdout.write(self.style.WARNING(f'path {image_path}'))
                 with open(image_path, "rb") as fh:
                     buf = BytesIO(fh.read())
                 img_name = f'{username}_profile.jpg'

@@ -19,4 +19,10 @@ urlpatterns = [
     path('messages/<int:match_id>/send/', send_message, name='send-message'),
     path('api/unlike/<int:liked_id>/', unlike_user, name='unlike-user'),
     path('update_current_user_profile/', update_current_user_profile, name='update_current_user_profile'),
+    path('icebreaker/', get_random_icebreaker, name='get_random_icebreaker'),
+    path('report/', submit_report, name='submit_report'),
+    path('report/<int:id>/accept/', accept_report, name='accept_report'),
+    path('report/<int:id>/deny/', deny_report, name='deny_report'),
+    path('reports/', get_reports, name='get_reports'),
+    path("match/<int:match_id>/key/", get_encryption_key),
 ]

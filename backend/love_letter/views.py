@@ -5,6 +5,7 @@ from django.http import JsonResponse
 def api_test(request):
     return JsonResponse({'message': 'u mnie działa xd'})
 '''
+import random
 
 from .models import *
 from .serializers import *
@@ -14,7 +15,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
@@ -66,10 +68,29 @@ def send_message(request, match_id):
         message = Message.objects.create(
             sender_id=sender_id,
             receiver=receiver,
-            content=serializer.validated_data['content']
+            content_encrypted=serializer.validated_data['content_encrypted'],
+            iv=serializer.validated_data['iv']
         )
         return Response(MessageSerializer(message).data, status=201)
     return Response(serializer.errors, status=400)
+
+@api_view(["GET"])
+def get_encryption_key(request, match_id):
+    try:
+        match = get_object_or_404(Match, id=match_id)
+        sender_id = request.session.get('user_id')
+
+        if not sender_id:
+            return Response({'error': 'User not authenticated in session'}, status=401)
+
+        if sender_id not in [match.user1.id, match.user2.id]:
+            return Response({'error': 'You are not part of this match'}, status=403)
+        
+        if sender_id != match.user1.id and sender_id != match.user2.id:
+            return Response({"detail": "Forbidden"}, status=403)
+        return Response({"key": match.encryption_key})
+    except Match.DoesNotExist:
+        return Response({"detail": "Not found"}, status=404)
     
 # Przeglądarka dla REST API
 @api_view(['GET'])
@@ -192,6 +213,15 @@ def unlike_user(request, liked_id):
 
     return Response({'message': f'Usunięto polubienie i ewentualny match z {liked.username}.'}, status=status.HTTP_200_OK)
 
+
+@api_view(['GET'])
+def get_random_icebreaker(request):
+    questions = list(IcebreakerQuestion.objects.all())
+    if not questions:
+        return Response({'error': 'Brak pytań w bazie.'}, status=status.HTTP_404_NOT_FOUND)
+
+    question = random.choice(questions)
+    return Response({'question': question.content}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def get_user_matches(request):
@@ -444,3 +474,77 @@ def update_current_user_profile(request):
     user.save()
 
     return Response({'message': 'Dane użytkownika zaktualizowane pomyślnie.'}, status=status.HTTP_200_OK)
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Report, CustomUser
+
+@api_view(['POST'])
+def submit_report(request):
+    reporter_id = request.session.get('user_id')
+    if not reporter_id:
+        return Response({'error': 'Brak aktywnego użytkownika.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    reported_user_id = request.data.get('reported_user_id')
+    reasons = request.data.get('reasons')
+
+    if not reported_user_id or not reasons:
+        return Response({'error': 'Niekompletne dane.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    reporter = CustomUser.objects.get(id=reporter_id)
+    reported = CustomUser.objects.get(id=reported_user_id)
+
+    report = Report.objects.create(
+        reporter=reporter,
+        reported=reported,
+        reasoning='\n'.join(reasons)
+    )
+
+    return Response({'message': 'Zgłoszenie zapisane.'}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def accept_report(request, id):
+    report = get_object_or_404(Report, id=id)
+    reported_user = report.reported
+
+    reported_user.delete()
+
+    report.delete()
+
+    return Response({'message': 'Zgłoszenie zaakceptowane i użytkownik usunięty.'})
+
+
+@api_view(['POST'])
+def deny_report(request, id):
+    report = get_object_or_404(Report, id=id)
+    report.delete()
+    return Response({'message': 'Zgłoszenie odrzucone.'})
+
+@api_view(['GET'])
+def get_reports(request):
+    reports = Report.objects.select_related('reporter', 'reported').all()
+    data = [
+        {
+            'id': r.id,
+            'reasoning': r.reasoning,
+            'reporter': {
+                'id': r.reporter.id,
+                'first_name': r.reporter.first_name,
+                'profile_picture': r.reporter.profile_picture.url if r.reporter.profile_picture else '',
+                'age': r.reporter.age
+            },
+            'reported': {
+                'id': r.reported.id,
+                'first_name': r.reported.first_name,
+                'profile_picture': r.reported.profile_picture.url if r.reported.profile_picture else '',
+                'age': r.reported.age
+            }
+        }
+        for r in reports
+    ]
+    return Response(data)
+
+
+

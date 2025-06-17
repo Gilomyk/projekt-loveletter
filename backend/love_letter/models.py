@@ -3,6 +3,8 @@ from django.utils import timezone
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import base64
+import os
 
 class Lifestyle(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -50,12 +52,13 @@ class CustomUser(AbstractUser):
 class Message(models.Model):
     sender = models.ForeignKey('CustomUser', related_name='sent_messages', on_delete=models.CASCADE)
     receiver = models.ForeignKey('CustomUser', related_name='received_messages', on_delete=models.CASCADE)
-    content = models.TextField()
+    content_encrypted = models.TextField()
+    iv = models.CharField(max_length=24, default="")
     timestamp = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.sender} ➜ {self.receiver}: {self.content[:20]}"
+        return f"{self.sender} ➜ {self.receiver}: {self.content_encrypted[:20]}"
 
 
 class UserTrait(models.Model):
@@ -101,6 +104,7 @@ class Match(models.Model):
     user1 = models.ForeignKey(CustomUser, related_name='matcher1', on_delete=models.CASCADE)
     user2 = models.ForeignKey(CustomUser, related_name='matcher2', on_delete=models.CASCADE)
     matched_at = models.DateTimeField(auto_now_add=True)
+    encryption_key = models.CharField(max_length=64, blank=True)
 
     # metoda zwracająca wiadomości dla danego matcha
     def get_messages(self):
@@ -108,9 +112,29 @@ class Match(models.Model):
             models.Q(sender=self.user1, receiver=self.user2) |
             models.Q(sender=self.user2, receiver=self.user1)
         ).order_by('timestamp')
+    
+    def save(self, *args, **kwargs):
+        if not self.encryption_key:
+            key = os.urandom(16)  # 128-bit AES key
+            self.encryption_key = base64.b64encode(key).decode()
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ('user1', 'user2')
 
     def __str__(self):
         return f"Match: {self.user1.username} & {self.user2.username}"
+    
+class Report(models.Model):
+    reporter = models.ForeignKey(CustomUser, related_name='reporter', on_delete=models.CASCADE)
+    reported = models.ForeignKey(CustomUser, related_name='reported', on_delete=models.CASCADE)
+    reasoning = models.TextField()
+
+    def __str__(self):
+        return f"{self.reporter} ➜ {self.reported}: {self.reasoning[:20]}"
+    
+class IcebreakerQuestion(models.Model):
+    content = models.TextField()
+
+    def __str__(self):
+        return f"{self.content[:75]}"
